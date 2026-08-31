@@ -23,6 +23,7 @@ import io.legado.app.lib.theme.view.ThemeEditText
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.flowWithLifecycleAndDatabaseChange
+import io.legado.app.utils.readText
 import io.legado.app.utils.setEdgeEffectColor
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.toastOnUi
@@ -101,13 +102,94 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_new -> showNewDialog()
-            R.id.menu_template -> toastOnUi(R.string.breakdown_template_menu)
-            R.id.menu_import -> toastOnUi(R.string.breakdown_import_menu)
-            R.id.menu_export -> toastOnUi(R.string.breakdown_export_menu)
-            R.id.menu_ai_config -> toastOnUi(R.string.breakdown_ai_config_menu)
+            R.id.menu_template -> startActivity<TemplateManageActivity>()
+            R.id.menu_import -> importFile.launch {
+                mode = io.legado.app.ui.file.HandleFileContract.FILE
+                title = getString(R.string.import_str)
+                allowExtensions = arrayOf("json")
+            }
+
+            R.id.menu_export -> exportAllJson()
+            R.id.menu_ai_config -> startActivity<AiConfigActivity>()
             R.id.menu_trash -> startActivity<BreakdownTrashActivity>()
         }
         return super.onCompatOptionsItemSelected(item)
+    }
+
+    /* ------------------------------ 导出/导入 ------------------------------ */
+
+    private val exportResult =
+        registerForActivityResult(io.legado.app.ui.file.HandleFileContract()) {
+            // 导出由文件选择页负责落盘
+        }
+
+    private fun exportAllJson() {
+        toastOnUi(R.string.breakdown_export_done)
+        lifecycleScope.launch {
+            val json = withContext(IO) { buildFullJson() }
+            val name = "breakdown备份_${System.currentTimeMillis()}.json"
+            exportResult.launch {
+                mode = io.legado.app.ui.file.HandleFileContract.EXPORT
+                fileData = io.legado.app.ui.file.HandleFileContract.FileData(
+                    name,
+                    json.toByteArray(),
+                    "application/json"
+                )
+            }
+        }
+    }
+
+    private fun buildFullJson(): String {
+        val root = com.google.gson.JsonObject()
+        root.add("templates", io.legado.app.utils.GSON.toJsonTree(appDb.breakdownTemplateDao.all))
+        root.add("breakdowns", io.legado.app.utils.GSON.toJsonTree(appDb.bookBreakdownDao.all))
+        root.add("chapters", io.legado.app.utils.GSON.toJsonTree(appDb.breakdownChapterDao.all))
+        root.add("segments", io.legado.app.utils.GSON.toJsonTree(appDb.breakdownSegmentDao.all))
+        return root.toString()
+    }
+
+    private val importFile =
+        registerForActivityResult(io.legado.app.ui.file.HandleFileContract()) {
+            val uri = it.uri
+            if (uri == null) {
+                toastOnUi(getString(R.string.breakdown_import_failed, "null uri"))
+                return@registerForActivityResult
+            }
+            importFromUri(uri)
+        }
+
+    private fun importFromUri(uri: android.net.Uri) {
+        lifecycleScope.launch {
+            try {
+                val text = withContext(IO) { uri.readText(this@BreakdownHomeActivity) }
+                val bundle = BreakdownHelper.parseImportBundle(text)
+                if (bundle == null) {
+                    toastOnUi(R.string.breakdown_import_empty)
+                    return@launch
+                }
+                withContext(IO) {
+                    if (bundle.templates.isNotEmpty()) {
+                        appDb.breakdownTemplateDao.insert(*bundle.templates.toTypedArray())
+                    }
+                    if (bundle.breakdowns.isNotEmpty()) {
+                        appDb.bookBreakdownDao.insert(*bundle.breakdowns.toTypedArray())
+                    }
+                    if (bundle.chapters.isNotEmpty()) {
+                        appDb.breakdownChapterDao.upsert(*bundle.chapters.toTypedArray())
+                    }
+                    if (bundle.segments.isNotEmpty()) {
+                        appDb.breakdownSegmentDao.upsert(*bundle.segments.toTypedArray())
+                    }
+                }
+                BreakdownHelper.notifyChanged()
+                toastOnUi(getString(
+                    R.string.breakdown_import_res,
+                    bundle.breakdowns.size, bundle.chapters.size, bundle.segments.size
+                ))
+            } catch (e: Exception) {
+                toastOnUi(getString(R.string.breakdown_import_failed, e.message ?: "error"))
+            }
+        }
     }
 
     /* ------------------------------ 新建档案 ------------------------------ */
