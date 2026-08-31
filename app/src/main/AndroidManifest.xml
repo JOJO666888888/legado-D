@@ -327,6 +327,12 @@
         <activity
             android:name=".ui.book.breakdown.BreakdownTrashActivity"
             android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.TemplateManageActivity"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.AiConfigActivity"
+            android:launchMode="singleTop" />
         <!-- 缓存界面 -->
         <activity
             android:name=".ui.book.cache.CacheActivity"
