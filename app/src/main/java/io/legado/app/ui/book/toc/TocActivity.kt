@@ -21,6 +21,7 @@ import io.legado.app.lib.theme.accentColor
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.model.ReadBook
 import io.legado.app.ui.about.AppLogDialog
+import io.legado.app.ui.book.material.BookMaterialFragment
 import io.legado.app.ui.book.toc.rule.TxtTocRuleDialog
 import io.legado.app.ui.file.HandleFileContract
 import io.legado.app.ui.widget.dialog.WaitDialog
@@ -43,6 +44,7 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
     private var menu: Menu? = null
     private var searchView: SearchView? = null
     private val waitDialog by lazy { WaitDialog(this) }
+    private var bookMaterialFragment: BookMaterialFragment? = null
     private val exportDir = registerForActivityResult(HandleFileContract()) {
         it.uri?.let { uri ->
             when (it.requestCode) {
@@ -88,10 +90,11 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
 
                 override fun onQueryTextChange(newText: String): Boolean {
                     viewModel.searchKey = newText
-                    if (tabLayout.selectedTabPosition == 1) {
-                        viewModel.startBookmarkSearch(newText)
-                    } else {
-                        viewModel.startChapterListSearch(newText)
+                    when (tabLayout.selectedTabPosition) {
+                        1 -> viewModel.startBookmarkSearch(newText)
+                        2 -> bookMaterialFragment?.search(newText)
+                        3 -> Unit // 拆书 Tab 无搜索
+                        else -> viewModel.startChapterListSearch(newText)
                     }
                     return false
                 }
@@ -106,14 +109,26 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
     }
 
     override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
-        if (tabLayout.selectedTabPosition == 1) {
-            menu.setGroupVisible(R.id.menu_group_bookmark, true)
-            menu.setGroupVisible(R.id.menu_group_toc, false)
-            menu.setGroupVisible(R.id.menu_group_text, false)
-        } else {
-            menu.setGroupVisible(R.id.menu_group_bookmark, false)
-            menu.setGroupVisible(R.id.menu_group_toc, true)
-            menu.setGroupVisible(R.id.menu_group_text, viewModel.bookData.value?.isLocalTxt == true)
+        when (tabLayout.selectedTabPosition) {
+            1 -> {
+                menu.setGroupVisible(R.id.menu_group_bookmark, true)
+                menu.setGroupVisible(R.id.menu_group_toc, false)
+                menu.setGroupVisible(R.id.menu_group_text, false)
+            }
+
+            3 -> {
+                // 拆书 Tab:隐藏目录相关菜单
+                menu.setGroupVisible(R.id.menu_group_bookmark, false)
+                menu.setGroupVisible(R.id.menu_group_toc, false)
+                menu.setGroupVisible(R.id.menu_group_text, false)
+            }
+
+            else -> {
+                menu.setGroupVisible(R.id.menu_group_bookmark, false)
+                menu.setGroupVisible(R.id.menu_group_toc, tabLayout.selectedTabPosition == 0)
+                menu.setGroupVisible(R.id.menu_group_text,
+                    tabLayout.selectedTabPosition == 0 && viewModel.bookData.value?.isLocalTxt == true)
+            }
         }
         menu.findItem(R.id.menu_use_replace)?.isChecked =
             AppConfig.tocUiUseReplace
@@ -198,17 +213,33 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
         override fun getItem(position: Int): Fragment {
             return when (position) {
                 1 -> BookmarkFragment()
+                2 -> BookMaterialFragment.newInstance(
+                    viewModel.bookData.value?.name ?: "",
+                    viewModel.bookData.value?.author ?: ""
+                ).also {
+                    bookMaterialFragment = it
+                }
+
+                3 -> BreakdownTabFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("bookUrl", viewModel.bookData.value?.bookUrl)
+                        putString("bookName", viewModel.bookData.value?.name)
+                    }
+                }
+
                 else -> ChapterListFragment()
             }
         }
 
         override fun getCount(): Int {
-            return 2
+            return 4
         }
 
         override fun getPageTitle(position: Int): CharSequence {
             return when (position) {
                 1 -> getString(R.string.bookmark)
+                2 -> getString(R.string.material_library)
+                3 -> getString(R.string.breakdown_home)
                 else -> getString(R.string.chapter_list)
             }
         }

@@ -100,8 +100,13 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             }
             val index = intent.getIntExtra("index", -1)
             val chapterPos = intent.getIntExtra("chapterPos", -1)
-            if (index >= 0 && chapterPos >= 0) { //从书签打开的正文，有进度传递
+            if (index >= 0 && chapterPos >= 0) { //从书签/素材打开的正文，有进度传递
                 ReadBook.saveCurrentBookProgress() //启用恢复进度提示
+                val materialId = intent.getLongExtra("materialId", -1L)
+                if (materialId > 0) {
+                    //素材跳转:携带素材用于偏移漂移兜底(净化/替换规则变更后重定位)
+                    ReadBook.pendingMaterial = appDb.materialDao.get(materialId)
+                }
                 openChapter(index, chapterPos)
             }
         }.onSuccess {

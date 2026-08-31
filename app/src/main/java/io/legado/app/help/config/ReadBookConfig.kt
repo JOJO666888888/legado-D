@@ -340,6 +340,12 @@ object ReadBookConfig {
             config.underlineMode = value
         }
 
+    var materialMarkStyle: Int
+        get() = config.materialMarkStyle
+        set(value) {
+            config.materialMarkStyle = value
+        }
+
     var paddingBottom: Int
         get() = config.paddingBottom
         set(value) {
@@ -568,6 +574,7 @@ object ReadBookConfig {
         var titleBottomSpacing: Int = 0,
         var paragraphIndent: String = "　　",//段落缩进
         var underlineMode: Int = 0, //下划线
+        var materialMarkStyle: Int = 0, //素材划线样式 0:下划线 1:背景色 2:波浪线 3:关闭
         var paddingBottom: Int = 6,
         var paddingLeft: Int = 16,
         var paddingRight: Int = 16,

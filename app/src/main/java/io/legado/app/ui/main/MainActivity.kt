@@ -42,6 +42,7 @@ import io.legado.app.ui.main.bookshelf.BaseBookshelfFragment
 import io.legado.app.ui.main.bookshelf.style1.BookshelfFragment1
 import io.legado.app.ui.main.bookshelf.style2.BookshelfFragment2
 import io.legado.app.ui.main.explore.ExploreFragment
+import io.legado.app.ui.main.material.MaterialLibraryFragment
 import io.legado.app.ui.main.my.MyFragment
 import io.legado.app.ui.main.rss.RssFragment
 import io.legado.app.ui.widget.dialog.TextDialog
@@ -84,9 +85,10 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private val idBookshelf = 0
     private val idBookshelf1 = 11
     private val idBookshelf2 = 12
-    private val idExplore = 1
-    private val idRss = 2
-    private val idMy = 3
+    private val idMaterial = 1
+    private val idExplore = 2
+    private val idRss = 3
+    private val idMy = 4
     private var exitTime: Long = 0
     private var bookshelfReselected: Long = 0
     private var exploreReselected: Long = 0
@@ -94,7 +96,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private val fragmentMap = hashMapOf<Int, Fragment>()
     private var bottomMenuCount = 4
     private val EXIT_INTERVAL = 2000L
-    private val realPositions = arrayOf(idBookshelf, idExplore, idRss, idMy)
+    private val realPositions = arrayOf(idBookshelf, idMaterial, idExplore, idRss, idMy)
     private val adapter by lazy {
         TabFragmentPageAdapter(supportFragmentManager)
     }
@@ -164,6 +166,9 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             R.id.menu_bookshelf ->
                 viewPagerMain.setCurrentItem(0, false)
 
+            R.id.menu_material ->
+                viewPagerMain.setCurrentItem(realPositions.indexOf(idMaterial), false)
+
             R.id.menu_discovery ->
                 viewPagerMain.setCurrentItem(realPositions.indexOf(idExplore), false)
 
@@ -190,7 +195,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                 if (System.currentTimeMillis() - exploreReselected > 300) {
                     exploreReselected = System.currentTimeMillis()
                 } else {
-                    (fragmentMap[1] as? ExploreFragment)?.compressExplore()
+                    (fragmentMap[idExplore] as? ExploreFragment)?.compressExplore()
                 }
             }
         }
@@ -391,13 +396,20 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     private fun upBottomMenu() {
+        val showMaterial = AppConfig.showMaterialTab
         val showDiscovery = AppConfig.showDiscovery
         val showRss = AppConfig.showRSS
         binding.bottomNavigationView.menu.let { menu ->
+            menu.findItem(R.id.menu_material).isVisible = showMaterial
             menu.findItem(R.id.menu_discovery).isVisible = showDiscovery
             menu.findItem(R.id.menu_rss).isVisible = showRss
         }
         var index = 0
+        realPositions[index] = idBookshelf
+        if (showMaterial) {
+            index++
+            realPositions[index] = idMaterial
+        }
         if (showDiscovery) {
             index++
             realPositions[index] = idExplore
@@ -458,6 +470,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             val fragmentId = getId(position)
             if ((fragmentId == idBookshelf1 && any is BookshelfFragment1)
                 || (fragmentId == idBookshelf2 && any is BookshelfFragment2)
+                || (fragmentId == idMaterial && any is MaterialLibraryFragment)
                 || (fragmentId == idExplore && any is ExploreFragment)
                 || (fragmentId == idRss && any is RssFragment)
                 || (fragmentId == idMy && any is MyFragment)
@@ -471,6 +484,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             return when (getId(position)) {
                 idBookshelf1 -> BookshelfFragment1(position)
                 idBookshelf2 -> BookshelfFragment2(position)
+                idMaterial -> MaterialLibraryFragment(position)
                 idExplore -> ExploreFragment(position)
                 idRss -> RssFragment(position)
                 else -> MyFragment(position)

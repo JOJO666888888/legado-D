@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_restore_all"
+        android:title="@string/material_restore_all"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_clear_trash"
+        android:title="@string/material_clear_trash"
+        app:showAsAction="never" />
+
+</menu>

@@ -53,6 +53,18 @@ data class TextHtmlColumn(
             }
             field = value
         }
+    override var isMaterial: Boolean = false
+        set(value) {
+            if (field != value) {
+                textLine.invalidate()
+                if (value) {
+                    textLine.materialColumnCount++
+                } else {
+                    textLine.materialColumnCount--
+                }
+            }
+            field = value
+        }
 
     override fun draw(view: ContentTextView, canvas: Canvas) {
         val y = textLine.lineBase - textLine.lineTop
@@ -84,6 +96,9 @@ data class TextHtmlColumn(
             canvas.drawText(charData, start + letterSpacingHalf, y, textPaint)
         } else {
             canvas.drawText(charData, start, y, textPaint)
+        }
+        if (isMaterial) {
+            textLine.drawMaterialMark(canvas, start, end)
         }
         if (selected) {
             canvas.drawRect(start, 0f, end, textLine.height, view.selectedPaint)

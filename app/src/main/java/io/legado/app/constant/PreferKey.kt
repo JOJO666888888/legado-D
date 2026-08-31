@@ -43,6 +43,12 @@ object PreferKey {
     const val showDiscovery = "showDiscovery"
     const val enableReview = "enableReview"
     const val showRss = "showRss"
+    const val showMaterialTab = "showMaterialTab"
+    // AI 拆书配置(仅存私有 Preferences,不入备份)
+    const val aiBaseUrl = "aiBaseUrl"
+    const val aiApiKey = "aiApiKey"
+    const val aiModel = "aiModel"
+    const val aiMaxSendChars = "aiMaxSendChars"
     const val bookshelfLayout = "bookshelfLayout"
     const val bookshelfSort = "bookshelfSort"
     const val bookExportFileName = "bookExportFileName"

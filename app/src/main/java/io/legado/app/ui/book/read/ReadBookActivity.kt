@@ -141,8 +141,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
+import com.google.android.material.snackbar.Snackbar
 import com.script.rhino.runScriptWithContext
+import io.legado.app.data.appDb
+import io.legado.app.help.material.MaterialHelper
 import io.legado.app.model.analyzeRule.AnalyzeUrl.Companion.paramPattern
+import io.legado.app.ui.book.material.MaterialDetailDialog
 import io.legado.app.ui.login.SourceLoginJsExtensions
 
 /**
@@ -856,6 +860,11 @@ class ReadBookActivity : BaseReadBookActivity(),
      */
     override fun onMenuItemSelected(itemId: Int): Boolean {
         when (itemId) {
+            R.id.menu_collect_material -> {
+                collectMaterial()
+                return true
+            }
+
             R.id.menu_aloud -> when (AppConfig.contentSelectSpeakMod) {
                 1 -> lifecycleScope.launch {
                     binding.readView.aloudStartSelect()
@@ -913,6 +922,38 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun onMenuActionFinally() = binding.run {
         textActionMenu.dismiss()
         readView.cancelSelect()
+    }
+
+    /**
+     * 收录素材(划线采集,不打断阅读)
+     */
+    private fun collectMaterial() {
+        val material = binding.readView.curPage.createMaterial()
+        if (material == null) {
+            toastOnUi(R.string.collect_material_error)
+            return
+        }
+        val content = material.content
+        lifecycleScope.launch {
+            val duplicate = withContext(IO) {
+                appDb.materialDao.countSame(material.bookName, material.bookAuthor, content) > 0
+            }
+            val id = withContext(IO) {
+                appDb.materialDao.insertReturnId(material)
+            }
+            MaterialHelper.notifyChanged()
+            val message = if (duplicate) {
+                getString(R.string.material_collected_duplicate, content.length)
+            } else {
+                getString(R.string.material_collected, content.length)
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).apply {
+                setAction(R.string.material_edit) {
+                    showDialogFragment(MaterialDetailDialog.newInstance(id))
+                }
+                show()
+            }
+        }
     }
 
     private fun speak(text: String) {
@@ -1737,6 +1778,9 @@ class ReadBookActivity : BaseReadBookActivity(),
 
     override fun observeLiveBus() = binding.run {
         observeEvent<String>(EventBus.TIME_CHANGED) { readView.upTime() }
+        observeEvent<Boolean>(EventBus.MATERIALS_CHANGED) {
+            ReadBook.upMaterialMarks()
+        }
         observeEvent<Int>(EventBus.BATTERY_CHANGED) { readView.upBattery(it) }
         observeEvent<Boolean>(EventBus.MEDIA_BUTTON) {
             if (it) {

@@ -18,6 +18,8 @@ import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
+import io.legado.app.help.material.MaterialHelper
+import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.prefs.fragment.PreferenceFragment
 import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.lib.theme.primaryColor
@@ -184,6 +186,8 @@ class MoreConfigDialog : BasePrefDialogFragment() {
                     (activity as? ReadBookActivity)?.showClickRegionalConfig()
                 }
 
+                "materialMarkStyle" -> showMaterialMarkStyleSelector()
+
                 PreferKey.pageTouchSlop -> {
                     NumberPickerDialog(requireContext())
                         .setTitle(getString(R.string.page_touch_slop_dialog_title))
@@ -209,6 +213,27 @@ class MoreConfigDialog : BasePrefDialogFragment() {
                 }
             }
             return super.onPreferenceTreeClick(preference)
+        }
+
+        /**
+         * 素材划线样式:0下划线 1背景色 2波浪线 3关闭
+         */
+        private fun showMaterialMarkStyleSelector() {
+            val styles = arrayOf(
+                getString(R.string.material_mark_underline),
+                getString(R.string.material_mark_background),
+                getString(R.string.material_mark_wavy),
+                getString(R.string.material_mark_off)
+            )
+            context?.selector(
+                getString(R.string.material_mark_style),
+                styles.mapIndexed { index, style ->
+                    if (index == ReadBookConfig.materialMarkStyle) "✔ $style" else style
+                }
+            ) { _, index ->
+                ReadBookConfig.materialMarkStyle = index
+                MaterialHelper.notifyChanged()
+            }
         }
 
         @Suppress("SameParameterValue")

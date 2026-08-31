@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import io.legado.app.R
 import io.legado.app.data.entities.Bookmark
+import io.legado.app.data.entities.Material
 import io.legado.app.help.book.isOnLineTxt
 import io.legado.app.help.config.AppConfig
 import io.legado.app.model.ReadBook
@@ -711,6 +712,33 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                             page.getPosByLineColumn(selectStart.lineIndex, selectStart.columnIndex)
                     chapterName = chapter.title
                     bookText = getSelectedText()
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * 从当前选中文字创建素材(定位口径与书签一致)
+     */
+    fun createMaterial(): Material? {
+        val page = relativePage(selectStart.relativePagePos)
+        page.getTextChapter().let { chapter ->
+            ReadBook.book?.let { book ->
+                val content = getSelectedText()
+                if (content.isBlank()) return null
+                return Material(
+                    bookName = book.name,
+                    bookAuthor = book.author,
+                    bookUrl = book.bookUrl,
+                    chapterIndex = page.chapterIndex,
+                    chapterPos = chapter.getReadLength(page.index) +
+                            page.getPosByLineColumn(selectStart.lineIndex, selectStart.columnIndex),
+                    chapterPosEnd = 0,
+                    chapterName = chapter.title,
+                    content = content
+                ).apply {
+                    chapterPosEnd = chapterPos + content.length
                 }
             }
         }

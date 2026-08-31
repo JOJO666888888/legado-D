@@ -294,6 +294,37 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
     val showRSS: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.showRss, true)
 
+    val showMaterialTab: Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.showMaterialTab, true)
+
+    // -------------------- AI 拆书配置(仅存私有 Preferences,不入备份) --------------------
+
+    var aiBaseUrl: String
+        get() = appCtx.getPrefString(PreferKey.aiBaseUrl, "https://api.openai.com/v1")
+            ?: "https://api.openai.com/v1"
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiBaseUrl, value)
+        }
+
+    var aiApiKey: String
+        get() = appCtx.getPrefString(PreferKey.aiApiKey, "").orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiApiKey, value)
+        }
+
+    var aiModel: String
+        get() = appCtx.getPrefString(PreferKey.aiModel, "gpt-4o-mini").orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiModel, value)
+        }
+
+    // 单章最大发送字数(超长截断并提示)
+    var aiMaxSendChars: Int
+        get() = appCtx.getPrefInt(PreferKey.aiMaxSendChars, 30000)
+        set(value) {
+            appCtx.putPrefInt(PreferKey.aiMaxSendChars, value)
+        }
+
     val autoRefreshBook: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.autoRefresh)
 
