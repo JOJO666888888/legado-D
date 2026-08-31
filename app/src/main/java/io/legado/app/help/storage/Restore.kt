@@ -17,6 +17,7 @@ import io.legado.app.data.entities.Bookmark
 import io.legado.app.data.entities.DictRule
 import io.legado.app.data.entities.HttpTTS
 import io.legado.app.data.entities.KeyboardAssist
+import io.legado.app.data.entities.Material
 import io.legado.app.data.entities.ReadRecord
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.data.entities.RssSource
@@ -128,6 +129,9 @@ object Restore {
         }
         fileToListT<Bookmark>(path, "bookmark.json")?.let {
             appDb.bookmarkDao.insert(*it.toTypedArray())
+        }
+        fileToListT<Material>(path, "material.json")?.let {
+            appDb.materialDao.insert(*it.toTypedArray())
         }
         fileToListT<BookGroup>(path, "bookGroup.json")?.let {
             appDb.bookGroupDao.insert(*it.toTypedArray())

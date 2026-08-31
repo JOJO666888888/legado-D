@@ -4,10 +4,14 @@ package io.legado.app.ui.book.read.page.entities
 import androidx.annotation.Keep
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
+import io.legado.app.data.entities.Material
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.help.book.BookContent
+import io.legado.app.help.config.ReadBookConfig
+import io.legado.app.help.material.MaterialHelper
 import io.legado.app.ui.book.read.page.provider.LayoutProgressListener
 import io.legado.app.ui.book.read.page.provider.TextChapterLayout
+import io.legado.app.ui.book.read.page.entities.column.TextBaseColumn
 import io.legado.app.utils.fastBinarySearchBy
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.abs
@@ -262,6 +266,60 @@ data class TextChapter(
                 it.isSearchResult = false
             }
             page.searchResult.clear()
+        }
+    }
+
+    /**
+     * 应用素材划线标记(含偏移漂移兜底)
+     */
+    fun applyMaterials(materials: List<Material>) {
+        clearMaterialMarks()
+        if (materials.isEmpty() || ReadBookConfig.materialMarkStyle == 3) {
+            return
+        }
+        val content = getContent()
+        for (material in materials) {
+            val range = MaterialHelper.resolveRange(content, material) ?: continue
+            markMaterialRange(range[0], range[1])
+        }
+    }
+
+    /**
+     * 清除全部素材划线标记
+     */
+    fun clearMaterialMarks() {
+        for (page in pages) {
+            for (line in page.lines) {
+                if (line.materialColumnCount == 0) continue
+                for (column in line.columns) {
+                    if (column is TextBaseColumn && column.isMaterial) {
+                        column.isMaterial = false
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 标记章节文本 [start, end) 偏移区间内的文字列
+     */
+    private fun markMaterialRange(start: Int, end: Int) {
+        if (start >= end) return
+        for (page in pages) {
+            if (page.chapterPosition + page.charSize <= start) continue
+            if (page.chapterPosition >= end) break
+            for (line in page.lines) {
+                var offset = line.chapterPosition
+                if (offset >= end) break
+                for (column in line.columns) {
+                    if (column !is TextBaseColumn) continue
+                    val size = column.charData.length
+                    if (size > 0 && offset < end && offset + size > start) {
+                        column.isMaterial = true
+                    }
+                    offset += size
+                }
+            }
         }
     }
 

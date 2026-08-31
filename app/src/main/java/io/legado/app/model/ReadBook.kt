@@ -8,6 +8,7 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookProgress
 import io.legado.app.data.entities.BookSource
+import io.legado.app.data.entities.Material
 import io.legado.app.data.entities.ReadRecord
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.BookHelp
@@ -23,6 +24,7 @@ import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.globalExecutor
+import io.legado.app.help.material.MaterialHelper
 import io.legado.app.model.localBook.TextFile
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.BaseReadAloudService
@@ -86,6 +88,9 @@ object ReadBook : CoroutineScope by MainScope() {
 
     /* web端阅读进度记录 */
     var webBookProgress: BookProgress? = null
+
+    /* 素材跳转待校验素材(偏移漂移兜底) */
+    var pendingMaterial: Material? = null
 
     var preDownloadTask: Job? = null
     val downloadedChapters = hashSetOf<Int>()
@@ -449,6 +454,38 @@ object ReadBook : CoroutineScope by MainScope() {
         }
     }
 
+    /**
+     * 应用素材划线标记到已排版的章节(标记在 TextChapter 上,不影响排版)
+     */
+    private suspend fun applyMaterials(book: Book, textChapter: TextChapter) {
+        if (ReadBookConfig.materialMarkStyle == 3) {
+            return
+        }
+        val materials = withContext(IO) {
+            appDb.materialDao.getActiveByChapter(book.name, book.author, textChapter.position)
+        }
+        if (materials.isNotEmpty()) {
+            textChapter.applyMaterials(materials)
+        }
+    }
+
+    /**
+     * 素材变动后刷新已加载章节的划线标记(事件驱动)
+     */
+    fun upMaterialMarks() {
+        val book = book ?: return
+        Coroutine.async {
+            textChapter(-1)?.let { applyMaterials(book, it) }
+            textChapter(0)?.let { applyMaterials(book, it) }
+            textChapter(1)?.let { applyMaterials(book, it) }
+            withContext(Main) {
+                callBack?.upContent(resetPageOffset = false)
+            }
+        }.onError {
+            AppLog.put("刷新素材划线失败\n${it.localizedMessage}", it)
+        }
+    }
+
     fun openChapter(
         index: Int,
         durChapterPos: Int = 0,
@@ -724,6 +761,13 @@ object ReadBook : CoroutineScope by MainScope() {
                         curTextChapter = textChapter
                     }
                     callBack?.upMenuView()
+                    // 素材跳转:校验定位(净化/替换规则变更后的偏移漂移兜底)
+                    pendingMaterial?.let { material ->
+                        pendingMaterial = null
+                        MaterialHelper.resolveRange(contents.toString(), material)?.let { range ->
+                            durChapterPos = range[0]
+                        }
+                    }
                     var available = false
                     for (page in textChapter.layoutChannel) {
                         val index = page.index
@@ -740,6 +784,7 @@ object ReadBook : CoroutineScope by MainScope() {
                         }
                         callBack?.onLayoutPageCompleted(index, page)
                     }
+                    applyMaterials(book, textChapter)
                     if (upContent) callBack?.upContent(offset, !available && resetPageOffset)
                     curPageChanged()
                     callBack?.contentLoadFinish()
@@ -751,6 +796,7 @@ object ReadBook : CoroutineScope by MainScope() {
                         prevTextChapter = textChapter
                     }
                     textChapter.layoutChannel.receiveAsFlow().collect()
+                    applyMaterials(book, textChapter)
                     if (upContent) callBack?.upContent(offset, resetPageOffset)
                 }
 
@@ -765,6 +811,7 @@ object ReadBook : CoroutineScope by MainScope() {
                         }
                         if (upContent) callBack?.upContent(offset, resetPageOffset)
                     }
+                    applyMaterials(book, textChapter)
                 }
             }
 

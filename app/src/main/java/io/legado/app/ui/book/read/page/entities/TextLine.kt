@@ -3,7 +3,9 @@ package io.legado.app.ui.book.read.page.entities
 import android.annotation.SuppressLint
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
+import android.graphics.Paint
 import android.graphics.Paint.FontMetrics
+import android.graphics.Path
 import android.os.Build
 import android.text.TextPaint
 import androidx.annotation.Keep
@@ -15,6 +17,7 @@ import io.legado.app.model.ReadBook
 import io.legado.app.ui.book.read.page.ContentTextView
 import io.legado.app.ui.book.read.page.entities.TextPage.Companion.emptyTextPage
 import io.legado.app.ui.book.read.page.entities.column.BaseColumn
+import io.legado.app.ui.book.read.page.entities.column.TextBaseColumn
 import io.legado.app.ui.book.read.page.entities.column.TextColumn
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.utils.canvasrecorder.CanvasRecorderFactory
@@ -57,6 +60,7 @@ data class TextLine(
     val height: Float inline get() = lineBottom - lineTop
     val canvasRecorder = CanvasRecorderFactory.create()
     var searchResultColumnCount = 0
+    var materialColumnCount = 0
     var isReadAloud: Boolean = false
         set(value) {
             if (field != value) {
@@ -220,6 +224,80 @@ data class TextLine(
             val column = columns[i] as TextColumn
             if (column.selected) {
                 canvas.drawRect(column.start, 0f, column.end, height, view.selectedPaint)
+            }
+        }
+        if (materialColumnCount > 0) {
+            drawMaterialMarks(canvas)
+        }
+    }
+
+    /**
+     * 绘制素材划线标记(快绘路径:合并连续标记列)
+     */
+    private fun drawMaterialMarks(canvas: Canvas) {
+        var runStart = -1f
+        var runEnd = -1f
+        for (column in columns) {
+            if (column is TextBaseColumn && column.isMaterial) {
+                if (runStart < 0) {
+                    runStart = column.start
+                }
+                runEnd = column.end
+            } else if (runStart >= 0) {
+                drawMaterialMark(canvas, runStart, runEnd)
+                runStart = -1f
+            }
+        }
+        if (runStart >= 0) {
+            drawMaterialMark(canvas, runStart, runEnd)
+        }
+    }
+
+    /**
+     * 绘制素材划线标记
+     * 样式: 0下划线 1背景色 2波浪线
+     */
+    fun drawMaterialMark(canvas: Canvas, markStart: Float, markEnd: Float) {
+        val markY = height - 1.dpToPx().toFloat()
+        when (ReadBookConfig.materialMarkStyle) {
+            1 -> { // 背景色
+                val paint = PaintPool.obtain()
+                paint.color = ReadBookConfig.textAccentColor
+                paint.alpha = (paint.alpha * 0.3f).toInt()
+                canvas.drawRect(markStart, 0f, markEnd, height, paint)
+                PaintPool.recycle(paint)
+            }
+
+            2 -> { // 波浪线
+                val paint = PaintPool.obtain()
+                paint.set(ChapterProvider.contentPaint)
+                paint.style = Paint.Style.STROKE
+                paint.strokeWidth = 1.dpToPx().toFloat()
+                paint.color = ReadBookConfig.textAccentColor
+                val waveLength = 8.dpToPx().toFloat()
+                val amplitude = 2.dpToPx().toFloat()
+                val path = Path()
+                path.moveTo(markStart, markY)
+                var x = markStart
+                var up = true
+                while (x < markEnd) {
+                    val nextX = (x + waveLength).coerceAtMost(markEnd)
+                    val midX = (x + nextX) / 2
+                    path.quadTo(midX, if (up) markY - amplitude else markY + amplitude, nextX, markY)
+                    up = !up
+                    x = nextX
+                }
+                canvas.drawPath(path, paint)
+                PaintPool.recycle(paint)
+            }
+
+            else -> { // 下划线
+                val paint = PaintPool.obtain()
+                paint.set(ChapterProvider.contentPaint)
+                paint.strokeWidth = 1.dpToPx().toFloat()
+                paint.color = ReadBookConfig.textAccentColor
+                canvas.drawLine(markStart, markY, markEnd, markY, paint)
+                PaintPool.recycle(paint)
             }
         }
     }

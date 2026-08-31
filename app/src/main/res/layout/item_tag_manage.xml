@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="12dp">
+
+    <View
+        android:id="@+id/view_color"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        tools:background="#7E57C2" />
+
+    <TextView
+        android:id="@+id/tv_tag_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/primaryText"
+        android:textSize="15sp"
+        tools:text="人物金句" />
+
+    <TextView
+        android:id="@+id/tv_tag_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/secondaryText"
+        android:textSize="13sp"
+        tools:text="12 条" />
+
+</LinearLayout>

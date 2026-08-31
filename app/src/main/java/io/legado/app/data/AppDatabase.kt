@@ -19,6 +19,7 @@ import io.legado.app.data.dao.CookieDao
 import io.legado.app.data.dao.DictRuleDao
 import io.legado.app.data.dao.HttpTTSDao
 import io.legado.app.data.dao.KeyboardAssistsDao
+import io.legado.app.data.dao.MaterialDao
 import io.legado.app.data.dao.ReadRecordDao
 import io.legado.app.data.dao.ReplaceRuleDao
 import io.legado.app.data.dao.RssArticleDao
@@ -41,6 +42,7 @@ import io.legado.app.data.entities.Cookie
 import io.legado.app.data.entities.DictRule
 import io.legado.app.data.entities.HttpTTS
 import io.legado.app.data.entities.KeyboardAssist
+import io.legado.app.data.entities.Material
 import io.legado.app.data.entities.ReadRecord
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.data.entities.RssArticle
@@ -67,13 +69,14 @@ val appDb by lazy {
 }
 
 @Database(
-    version = 89,
+    version = 90,
     exportSchema = true,
     entities = [Book::class, BookGroup::class, BookSource::class, BookChapter::class,
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
         RssSource::class, Bookmark::class, RssArticle::class, RssReadRecord::class,
         RssStar::class, TxtTocRule::class, ReadRecord::class, HttpTTS::class, Cache::class,
-        RuleSub::class, DictRule::class, KeyboardAssist::class, Server::class],
+        RuleSub::class, DictRule::class, KeyboardAssist::class, Server::class,
+        Material::class],
     views = [BookSourcePart::class],
     autoMigrations = [
         AutoMigration(from = 43, to = 44),
@@ -121,7 +124,8 @@ val appDb by lazy {
         AutoMigration(from = 85, to = 86),
         AutoMigration(from = 86, to = 87),
         AutoMigration(from = 87, to = 88),
-        AutoMigration(from = 88, to = 89)
+        AutoMigration(from = 88, to = 89),
+        AutoMigration(from = 89, to = 90)
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -147,6 +151,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val dictRuleDao: DictRuleDao
     abstract val keyboardAssistsDao: KeyboardAssistsDao
     abstract val serverDao: ServerDao
+    abstract val materialDao: MaterialDao
 
     companion object {
 
