@@ -202,13 +202,24 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
                 toastOnUi(R.string.breakdown_book_not_found)
                 return@launch
             }
+            // 过滤未拆章节,避免重拆已确认/草稿数据
+            val unfinished = withContext(IO) {
+                chapters.filter { ch ->
+                    val rec = appDb.breakdownChapterDao.getByBreakdownAndIndex(breakdownId, ch.index)
+                    rec == null || rec.status == BreakdownHelper.STATUS_NONE
+                }
+            }
+            if (unfinished.isEmpty()) {
+                toastOnUi(getString(R.string.breakdown_ai_batch_done, 0, 0))
+                return@launch
+            }
             // 范围选择:全部章节
             selector(
                 getString(R.string.breakdown_ai_batch_scope),
                 listOf(getString(R.string.breakdown_ai_batch_unfinished))
             ) { _, _, index ->
                 if (index == 0) {
-                    runAiBatchAll(chapters.map { it.index })
+                    runAiBatchAll(unfinished.map { it.index })
                 }
             }
         }

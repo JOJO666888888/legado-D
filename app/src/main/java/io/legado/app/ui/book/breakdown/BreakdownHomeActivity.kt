@@ -196,6 +196,8 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
 
     private fun showNewDialog() {
         val context = this
+        // 选书时联动记录 bookUrl,用于档案页还原章节列表
+        var pickedBookUrl = ""
         val nameEdit = ThemeEditText(context).apply {
             hint = getString(R.string.breakdown_input_book_name)
             setSingleLine()
@@ -211,6 +213,7 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
                 pickBookFromShelf { book ->
                     nameEdit.setText(book.name)
                     authorEdit.setText(book.author)
+                    pickedBookUrl = book.bookUrl
                 }
             }
         }
@@ -227,6 +230,7 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
             okButton {
                 val name = nameEdit.text?.toString()?.trim().orEmpty()
                 val author = authorEdit.text?.toString()?.trim().orEmpty()
+                val bookUrl = pickedBookUrl
                 if (name.isEmpty()) {
                     toastOnUi(R.string.breakdown_input_book_name)
                     return@okButton
@@ -236,7 +240,7 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
                     toastOnUi(R.string.breakdown_duplicate)
                     return@okButton
                 }
-                pickTemplateAndCreate(name, author, "")
+                pickTemplateAndCreate(name, author, bookUrl)
             }
             cancelButton()
         }.show()
