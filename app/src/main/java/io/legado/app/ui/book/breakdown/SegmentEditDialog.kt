@@ -133,6 +133,7 @@ class SegmentEditDialog() : BaseDialogFragment(R.layout.dialog_segment_edit, tru
         })
         binding.tvImportMaterial.setOnClickListener { importFromMaterial() }
         binding.tvJump.setOnClickListener { jumpToSource() }
+        binding.tvToMaterial.setOnClickListener { toMaterial() }
         binding.tvDelete.setOnClickListener {
             val segToDelete = segment ?: return@setOnClickListener
             lifecycleScope.launch {
@@ -237,6 +238,52 @@ class SegmentEditDialog() : BaseDialogFragment(R.layout.dialog_segment_edit, tru
                     )
                     appDb.breakdownChapterDao.upsert(new).firstOrNull() ?: -1L
                 }
+        }
+    }
+
+    /** 段落转素材:按区间文本落库(复用素材划线采集管线) */
+    private fun toMaterial() {
+        val bk = book ?: run {
+            toastOnUi(R.string.breakdown_book_not_found)
+            return
+        }
+        val ch = chapter ?: return
+        val lines = lines
+        if (lines == null) {
+            toastOnUi(R.string.breakdown_jump_not_found)
+            return
+        }
+        val startLine = binding.editStartLine.text?.toString()?.trim()?.toIntOrNull()
+            ?: segment?.startLine ?: 1
+        val endLine = binding.editEndLine.text?.toString()?.trim()?.toIntOrNull()
+            ?: segment?.endLine ?: startLine
+        if (startLine < 1 || startLine > lines.size || endLine < startLine || endLine > lines.size) {
+            toastOnUi(getString(R.string.breakdown_line_range, startLine, endLine))
+            return
+        }
+        val rangeText = BreakdownHelper.rangeText(lines, startLine, endLine)
+        if (rangeText.isEmpty()) {
+            toastOnUi(R.string.breakdown_export_none)
+            return
+        }
+        lifecycleScope.launch {
+            val id = withContext(IO) {
+                val material = io.legado.app.data.entities.Material(
+                    bookName = bk.name,
+                    bookAuthor = bk.author,
+                    bookUrl = bk.bookUrl,
+                    chapterIndex = ch.index,
+                    chapterPos = BreakdownHelper.lineStartPos(lines, startLine),
+                    chapterPosEnd = BreakdownHelper.lineEndPos(lines, endLine),
+                    chapterName = ch.title,
+                    content = rangeText
+                )
+                appDb.materialDao.insertReturnId(material)
+            }
+            io.legado.app.help.material.MaterialHelper.notifyChanged()
+            if (id > 0) {
+                toastOnUi(R.string.breakdown_to_material_done)
+            }
         }
     }
 

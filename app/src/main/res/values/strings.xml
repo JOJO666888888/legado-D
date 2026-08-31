@@ -1541,4 +1541,6 @@
     <string name="breakdown_ai_chapter_menu">AI breakdown this chapter</string>
     <string name="breakdown_export_chapter_title">Export this chapter</string>
     <string name="breakdown_f9_empty">No breakdown file for this book yet.\nCreate one to see chapter status here.</string>
+    <string name="breakdown_to_material">Save as material</string>
+    <string name="breakdown_to_material_done">Saved to material library</string>
 </resources>

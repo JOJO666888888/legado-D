@@ -208,6 +208,13 @@
                 android:padding="12dp"
                 android:text="@string/breakdown_jump_original" />
 
+            <io.legado.app.ui.widget.text.AccentTextView
+                android:id="@+id/tv_to_material"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="@string/breakdown_to_material" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

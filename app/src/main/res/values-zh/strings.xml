@@ -1434,4 +1434,6 @@
     <string name="breakdown_ai_chapter_menu">AI 拆解本章</string>
     <string name="breakdown_export_chapter_title">导出本章</string>
     <string name="breakdown_f9_empty">本书尚未创建拆书档案。\n创建后可在此查看各章拆解状态。</string>
+    <string name="breakdown_to_material">转素材</string>
+    <string name="breakdown_to_material_done">已保存到素材库</string>
 </resources>
