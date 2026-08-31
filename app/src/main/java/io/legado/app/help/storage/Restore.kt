@@ -11,9 +11,13 @@ import io.legado.app.constant.AppLog
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
+import io.legado.app.data.entities.BookBreakdown
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.Bookmark
+import io.legado.app.data.entities.BreakdownChapter
+import io.legado.app.data.entities.BreakdownSegment
+import io.legado.app.data.entities.BreakdownTemplate
 import io.legado.app.data.entities.DictRule
 import io.legado.app.data.entities.HttpTTS
 import io.legado.app.data.entities.KeyboardAssist
@@ -132,6 +136,18 @@ object Restore {
         }
         fileToListT<Material>(path, "material.json")?.let {
             appDb.materialDao.insert(*it.toTypedArray())
+        }
+        fileToListT<BreakdownTemplate>(path, "breakdown_template.json")?.let {
+            appDb.breakdownTemplateDao.insert(*it.toTypedArray())
+        }
+        fileToListT<BookBreakdown>(path, "breakdown.json")?.let {
+            appDb.bookBreakdownDao.insert(*it.toTypedArray())
+        }
+        fileToListT<BreakdownChapter>(path, "breakdown_chapter.json")?.let {
+            appDb.breakdownChapterDao.upsert(*it.toTypedArray())
+        }
+        fileToListT<BreakdownSegment>(path, "breakdown_segment.json")?.let {
+            appDb.breakdownSegmentDao.upsert(*it.toTypedArray())
         }
         fileToListT<BookGroup>(path, "bookGroup.json")?.let {
             appDb.bookGroupDao.insert(*it.toTypedArray())

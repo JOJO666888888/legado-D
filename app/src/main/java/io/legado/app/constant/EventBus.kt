@@ -39,5 +39,7 @@ object EventBus {
     const val REFRESH_BOOK_CONTENT = "refreshBookContent"
     const val REFRESH_BOOK_TOC = "refreshBookToc"
     const val MATERIALS_CHANGED = "materialsChanged"
+    const val BREAKDOWNS_CHANGED = "breakdownsChanged"
+    const val BREAKDOWN_AI_PROGRESS = "breakdownAiProgress"
     const val UP_VIDEO_INFO = "upVideoInfo"
 }
