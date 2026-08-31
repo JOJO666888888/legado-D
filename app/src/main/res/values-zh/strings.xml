@@ -1421,4 +1421,17 @@
     <string name="breakdown_ai_test_ok">连接成功:%1$s</string>
     <string name="breakdown_ai_test_fail">连接失败:%1$s</string>
     <string name="breakdown_ai_privacy_hint">拆解内容将发送至你配置的服务商。</string>
+    <string name="breakdown_ai_key_missing">尚未配置 AI 服务,去设置?</string>
+    <string name="breakdown_ai_rerun_confirm">本章已确认,重新拆解将覆盖已确认数据,继续?</string>
+    <string name="breakdown_ai_done">AI 拆解完成,草稿已保存</string>
+    <string name="breakdown_ai_fail">AI 拆解失败:%1$s</string>
+    <string name="breakdown_ai_batch_scope">批量拆解范围</string>
+    <string name="breakdown_ai_batch_unfinished">全部未拆章节</string>
+    <string name="breakdown_ai_batch_confirm">将顺序拆解 %1$d 章?过程有进度提示,每章草稿需人工核对后确认。</string>
+    <string name="breakdown_ai_batch_done">批量完成:成功 %1$d · 失败 %2$d</string>
+    <string name="breakdown_ai_batch_running">正在拆解第 %1$d/%2$d 章…</string>
+    <string name="breakdown_chapter_not_cached">章节未缓存,请先缓存原文</string>
+    <string name="breakdown_ai_chapter_menu">AI 拆解本章</string>
+    <string name="breakdown_export_chapter_title">导出本章</string>
+    <string name="breakdown_f9_empty">本书尚未创建拆书档案。\n创建后可在此查看各章拆解状态。</string>
 </resources>

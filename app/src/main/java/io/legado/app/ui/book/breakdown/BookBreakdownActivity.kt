@@ -20,6 +20,7 @@ import io.legado.app.help.breakdown.BreakdownHelper
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.book.breakdown.BreakdownChapterAdapter.ChapterRow
+import io.legado.app.lib.dialogs.selector
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.flowWithLifecycleAndDatabaseChange
 import io.legado.app.utils.setEdgeEffectColor
@@ -177,12 +178,162 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
 
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_ai_batch -> toastOnUi(R.string.breakdown_ai_config_menu)
-            R.id.menu_export_book -> toastOnUi(R.string.breakdown_export_menu)
+            R.id.menu_ai_batch -> aiBatchBreakdown()
+            R.id.menu_export_book -> exportBook()
             R.id.menu_delete -> deleteBreakdown()
         }
         return super.onCompatOptionsItemSelected(item)
     }
+
+    /* ------------------------------ AI 批量拆解 ------------------------------ */
+
+    private fun aiBatchBreakdown() {
+        if (io.legado.app.help.config.AppConfig.aiApiKey.isBlank()) {
+            alert(R.string.breakdown_ai_title) {
+                setMessage(R.string.breakdown_ai_key_missing)
+                okButton { startActivity<AiConfigActivity>() }
+                cancelButton()
+            }.show()
+            return
+        }
+        lifecycleScope.launch {
+            val chapters = withContext(IO) { bookChapters.value }
+            if (chapters.isEmpty()) {
+                toastOnUi(R.string.breakdown_book_not_found)
+                return@launch
+            }
+            // 范围选择:全部章节
+            selector(
+                getString(R.string.breakdown_ai_batch_scope),
+                listOf(getString(R.string.breakdown_ai_batch_unfinished))
+            ) { _, _, index ->
+                if (index == 0) {
+                    runAiBatchAll(chapters.map { it.index })
+                }
+            }
+        }
+    }
+
+    private fun runAiBatchAll(chapterIndexes: List<Int>) {
+        val target = chapterIndexes
+            .filter { it >= 0 }
+        if (target.isEmpty()) {
+            toastOnUi(R.string.breakdown_export_none)
+            return
+        }
+        toastOnUi(getString(R.string.breakdown_ai_batch_confirm, target.size))
+        lifecycleScope.launch {
+            var okCount = 0
+            var failCount = 0
+            var finished = 0
+            for (index in target) {
+                finished++
+                toastOnUi(getString(R.string.breakdown_ai_batch_running, finished, target.size))
+                val err = withContext(IO) {
+                    BreakdownHelper.aiBreakdownChapter(breakdownId, index)
+                }
+                if (err == null) okCount++ else failCount++
+            }
+            toastOnUi(getString(R.string.breakdown_ai_batch_done, okCount, failCount))
+            BreakdownHelper.notifyChanged()
+        }
+    }
+
+    /* ------------------------------ 导出本书 ------------------------------ */
+
+    private fun exportBook() {
+        selector(
+            getString(R.string.breakdown_export_menu), listOf(
+                getString(R.string.breakdown_export_json),
+                getString(R.string.breakdown_export_csv),
+                getString(R.string.breakdown_export_md)
+            )
+        ) { _, _, index ->
+            when (index) {
+                0 -> exportBookJson()
+                1 -> exportBookCsv()
+                2 -> exportBookMd()
+            }
+        }
+    }
+
+    private fun exportBookJson() {
+        lifecycleScope.launch {
+            val json = withContext(IO) {
+                val bd = appDb.bookBreakdownDao.get(breakdownId)
+                if (bd == null) "[]"
+                else {
+                    val chapters = appDb.breakdownChapterDao.getByBreakdown(breakdownId)
+                    val segments = appDb.breakdownSegmentDao.getByBreakdown(breakdownId)
+                    val root = com.google.gson.JsonObject()
+                    root.add("templates", com.google.gson.JsonArray())
+                    root.add("breakdowns", io.legado.app.utils.GSON.toJsonTree(listOf(bd)))
+                    root.add("chapters", io.legado.app.utils.GSON.toJsonTree(chapters))
+                    root.add("segments", io.legado.app.utils.GSON.toJsonTree(segments))
+                    root.toString()
+                }
+            }
+            exportFile("${bdName()}.json", json.toByteArray())
+        }
+    }
+
+    private fun exportBookCsv() {
+        lifecycleScope.launch {
+            val csv = withContext(IO) {
+                val bd = appDb.bookBreakdownDao.get(breakdownId) ?: return@withContext null as String?
+                val template = bd.templateId.takeIf { it > 0 }
+                    ?.let { appDb.breakdownTemplateDao.get(it) }
+                val chapters = appDb.breakdownChapterDao.getByBreakdown(breakdownId)
+                val segments = appDb.breakdownSegmentDao.getByBreakdown(breakdownId)
+                    .groupBy { it.chapterId }
+                BreakdownHelper.toCsv(template, bd, chapters, segments)
+            }
+            if (csv == null) {
+                toastOnUi(R.string.breakdown_book_not_found)
+                return@launch
+            }
+            val fileBytes = csv.toByteArray(Charsets.UTF_8)
+            exportFile("${bdName()}.csv", fileBytes)
+        }
+    }
+
+    private fun exportBookMd() {
+        lifecycleScope.launch {
+            val md = withContext(IO) {
+                val bd = appDb.bookBreakdownDao.get(breakdownId) ?: return@withContext null as String?
+                val chapters = appDb.breakdownChapterDao.getByBreakdown(breakdownId)
+                val segments = appDb.breakdownSegmentDao.getByBreakdown(breakdownId)
+                    .groupBy { it.chapterId }
+                BreakdownHelper.toMarkdown(bd, chapters, segments)
+            }
+            if (md == null) {
+                toastOnUi(R.string.breakdown_book_not_found)
+                return@launch
+            }
+            exportFile("${bdName()}.md", md.toByteArray())
+        }
+    }
+
+    private fun bdName(): String {
+        val n = breakdown?.bookName.orEmpty().replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        return n.ifBlank { "breakdown" }
+    }
+
+    private fun exportFile(name: String, bytes: ByteArray) {
+        exportResult.launch {
+            mode = io.legado.app.ui.file.HandleFileContract.EXPORT
+            fileData = io.legado.app.ui.file.HandleFileContract.FileData(
+                name,
+                bytes,
+                "text/plain"
+            )
+        }
+    }
+
+    private val exportResult =
+        registerForActivityResult(io.legado.app.ui.file.HandleFileContract()) {
+            // 导出由文件选择页负责落盘
+        }
 
     private fun deleteBreakdown() {
         alert(R.string.delete) {

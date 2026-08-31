@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/menu_ai_batch"
-        android:title="@string/breakdown_ai_config_menu"
+        android:title="@string/breakdown_ai_batch_scope"
         app:showAsAction="never" />
 
     <item

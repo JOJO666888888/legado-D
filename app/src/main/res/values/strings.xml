@@ -1528,4 +1528,17 @@
     <string name="breakdown_ai_test_ok">Connection OK: %1$s</string>
     <string name="breakdown_ai_test_fail">Connection failed: %1$s</string>
     <string name="breakdown_ai_privacy_hint">Chapter content will be sent to the service you configure.</string>
+    <string name="breakdown_ai_key_missing">AI not configured. Open settings?</string>
+    <string name="breakdown_ai_rerun_confirm">This chapter is confirmed. Re-running AI will overwrite confirmed data. Continue?</string>
+    <string name="breakdown_ai_done">AI breakdown done, draft saved</string>
+    <string name="breakdown_ai_fail">AI failed: %1$s</string>
+    <string name="breakdown_ai_batch_scope">Batch chapters</string>
+    <string name="breakdown_ai_batch_unfinished">All unfinished chapters</string>
+    <string name="breakdown_ai_batch_confirm">AI-break down %1$d chapters sequentially? Progress shown on the way; check each draft before confirming.</string>
+    <string name="breakdown_ai_batch_done">Batch done: %1$d ok, %2$d failed</string>
+    <string name="breakdown_ai_batch_running">AI breaking down chapter %1$d/%2$d…</string>
+    <string name="breakdown_chapter_not_cached">Chapter not cached, download it first</string>
+    <string name="breakdown_ai_chapter_menu">AI breakdown this chapter</string>
+    <string name="breakdown_export_chapter_title">Export this chapter</string>
+    <string name="breakdown_f9_empty">No breakdown file for this book yet.\nCreate one to see chapter status here.</string>
 </resources>

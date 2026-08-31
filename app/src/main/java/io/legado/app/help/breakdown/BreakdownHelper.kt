@@ -500,6 +500,94 @@ object BreakdownHelper {
 
     /* ------------------------------ 内部小工具 ------------------------------ */
 
+    /**
+     * AI 拆解本章并落库(草稿态)。单章/批量共用;成功返回 null,失败返回错误文案。
+     *
+     * 规则:
+     * - 覆盖策略由调用方决定(已确认章需用户二次确认);
+     * - 无论结果如何,AI 产物一律 status=DRAFT 且 aiModel 记录来源;
+     * - 校验失败段 needCheck=true 保留,不覆盖人工已确认数据。
+     */
+    suspend fun aiBreakdownChapter(
+        breakdownId: Long,
+        chapterIndex: Int
+    ): String? = withContext(IO) {
+        try {
+            val bd = appDb.bookBreakdownDao.get(breakdownId) ?: return@withContext "档案不存在"
+            val book = bd.bookUrl.takeIf { it.isNotBlank() }
+                ?.let { appDb.bookDao.getBook(it) } ?: return@withContext "书未关联书架"
+            val chapter = appDb.bookChapterDao.getChapter(book.bookUrl, chapterIndex)
+                ?: return@withContext "章节不存在"
+            val lines = getPurifiedLines(book, chapter) ?: return@withContext "章节未缓存,请先缓存原文"
+
+            val template = bd.templateId.takeIf { it > 0 }
+                ?.let { appDb.breakdownTemplateDao.get(it) }
+            val (numbered, _) = buildNumberedContent(lines, io.legado.app.help.config.AppConfig.aiMaxSendChars)
+
+            val raw = BreakdownAiRunner.breakdownChapter(
+                numberedContent = numbered,
+                chapterTitle = chapter.title,
+                templateLabels = template?.segmentLabels.orEmpty(),
+                aiPromptExtra = template?.aiPromptExtra.orEmpty(),
+                baseUrl = io.legado.app.help.config.AppConfig.aiBaseUrl,
+                apiKey = io.legado.app.help.config.AppConfig.aiApiKey,
+                model = io.legado.app.help.config.AppConfig.aiModel
+            )
+            val finalized = BreakdownAiRunner.finalizeSegments(raw.segments, lines)
+
+            // 确保章记录存在
+            var record = appDb.breakdownChapterDao.getByBreakdownAndIndex(breakdownId, chapterIndex)
+            if (record == null) {
+                val id = appDb.breakdownChapterDao.upsert(
+                    BreakdownChapter(
+                        breakdownId = breakdownId,
+                        chapterIndex = chapterIndex,
+                        chapterName = chapter.title
+                    )
+                ).firstOrNull() ?: -1L
+                record = appDb.breakdownChapterDao.get(id)
+            }
+            record ?: return@withContext "章记录创建失败"
+
+            // 替换本章旧段落,写入草稿
+            appDb.breakdownSegmentDao.deleteByChapter(record.id)
+            val now = System.currentTimeMillis()
+            finalized.forEachIndexed { i, seg ->
+                var s = BreakdownSegment(
+                    chapterId = record.id,
+                    sortOrder = i,
+                    startLine = seg.startLine,
+                    endLine = seg.endLine,
+                    label = seg.label,
+                    contentSummary = seg.contentSummary,
+                    rhythmNote = seg.rhythmNote,
+                    highlights = seg.highlights.joinToString("\n"),
+                    needCheck = seg.needCheck,
+                    createTime = now,
+                    updateTime = now
+                )
+                s = refreshSegmentPos(s, lines)
+                appDb.breakdownSegmentDao.upsert(s)
+            }
+            val updated = record.copy(
+                summary = raw.chapterSummary,
+                status = STATUS_DRAFT,
+                aiModel = io.legado.app.help.config.AppConfig.aiModel,
+                updateTime = now
+            )
+            appDb.breakdownChapterDao.update(updated)
+            appDb.bookBreakdownDao.update(
+                bd.copy(updateTime = now)
+            )
+            notifyChanged()
+            null
+        } catch (e: BreakdownAiRunner.AiException) {
+            e.message ?: "AI 拆解失败"
+        } catch (e: Exception) {
+            e.message ?: "AI 拆解失败"
+        }
+    }
+
     private fun JsonObject.str(key: String): String =
         get(key)?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString ?: ""
 

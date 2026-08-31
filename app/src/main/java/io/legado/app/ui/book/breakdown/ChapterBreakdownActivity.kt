@@ -27,6 +27,7 @@ import io.legado.app.utils.dpToPx
 import io.legado.app.utils.flowWithLifecycleAndDatabaseChange
 import io.legado.app.utils.setEdgeEffectColor
 import io.legado.app.utils.showDialogFragment
+import io.legado.app.utils.startActivity
 import io.legado.app.utils.startActivityForBook
 import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
@@ -341,9 +342,129 @@ class ChapterBreakdownActivity :
 
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_ai_chapter -> toastOnUi(R.string.breakdown_ai_config_menu)
-            R.id.menu_export_chapter -> toastOnUi(R.string.breakdown_export_menu)
+            R.id.menu_ai_chapter -> aiBreakdownChapter()
+            R.id.menu_export_chapter -> exportChapter()
         }
         return super.onCompatOptionsItemSelected(item)
+    }
+
+    /* ------------------------------ 导出本章 ------------------------------ */
+
+    private fun exportChapter() {
+        val rec = chapterRec ?: return
+        selector(
+            getString(R.string.breakdown_export_chapter_title), listOf(
+                getString(R.string.breakdown_export_json),
+                getString(R.string.breakdown_export_md)
+            )
+        ) { _, _, index ->
+            when (index) {
+                0 -> exportChapterJson()
+                1 -> exportChapterMd()
+            }
+        }
+    }
+
+    private fun exportChapterJson() {
+        lifecycleScope.launch {
+            val json = withContext(IO) {
+                val rec = chapterRec ?: return@withContext "[]"
+                val segments = viewModel.getSegments(rec.id).sortedBy { it.sortOrder }
+                val root = com.google.gson.JsonObject()
+                root.add("chapters", io.legado.app.utils.GSON.toJsonTree(listOf(rec)))
+                root.add("segments", io.legado.app.utils.GSON.toJsonTree(segments))
+                root.toString()
+            }
+            exportChapterFile("${recName()}.json", json.toByteArray())
+        }
+    }
+
+    private fun exportChapterMd() {
+        lifecycleScope.launch {
+            val md = withContext(IO) {
+                val rec = chapterRec ?: return@withContext ""
+                val sb = StringBuilder()
+                sb.append("## ").append(rec.chapterName).append('\n')
+                if (rec.summary.isNotBlank()) {
+                    sb.append("**剧情+节奏总结:**").append(rec.summary).append("\n\n")
+                }
+                viewModel.getSegments(rec.id).sortedBy { it.sortOrder }.forEach { seg ->
+                    sb.append("### ").append(seg.startLine).append('-').append(seg.endLine)
+                    if (seg.label.isNotBlank()) sb.append(" · #").append(seg.label)
+                    if (seg.needCheck) sb.append(" · 需人工核对")
+                    sb.append("\n\n")
+                    if (seg.contentSummary.isNotBlank()) sb.append("**内容简述:**").append(seg.contentSummary).append("\n\n")
+                    if (seg.rhythmNote.isNotBlank()) sb.append("**节奏拆解:**").append(seg.rhythmNote).append("\n\n")
+                    if (seg.highlights.isNotBlank()) {
+                        sb.append("**亮点爆点:**\n")
+                        seg.highlights.lines().forEach { line -> if (line.isNotBlank()) sb.append("> ").append(line).append('\n') }
+                        sb.append('\n')
+                    }
+                }
+                sb.toString()
+            }
+            exportChapterFile("${recName()}.md", md.toByteArray())
+        }
+    }
+
+    private fun recName(): String {
+        val n = chapterRec?.chapterName.orEmpty().replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        return n.ifBlank { "chapter" }
+    }
+
+    private fun exportChapterFile(name: String, bytes: ByteArray) {
+        exportResult.launch {
+            mode = io.legado.app.ui.file.HandleFileContract.EXPORT
+            fileData = io.legado.app.ui.file.HandleFileContract.FileData(
+                name, bytes, "text/plain"
+            )
+        }
+    }
+
+    private val exportResult =
+        registerForActivityResult(io.legado.app.ui.file.HandleFileContract()) {
+            // 导出由文件选择页负责落盘
+        }
+
+    /* ------------------------------ AI 拆解本章 ------------------------------ */
+
+    private fun aiBreakdownChapter() {
+        val record = chapterRec ?: return
+        if (io.legado.app.help.config.AppConfig.aiApiKey.isBlank()) {
+            alert(R.string.breakdown_ai_title) {
+                setMessage(R.string.breakdown_ai_key_missing)
+                okButton { startActivity<AiConfigActivity>() }
+                cancelButton()
+            }.show()
+            return
+        }
+        // 已确认章:允许重新拆解但需二次确认(不静默覆盖)
+        if (record.status == BreakdownHelper.STATUS_CONFIRMED) {
+            alert(R.string.breakdown_ai_title) {
+                setMessage(R.string.breakdown_ai_rerun_confirm)
+                okButton { runAiChapter() }
+                cancelButton()
+            }.show()
+        } else {
+            runAiChapter()
+        }
+    }
+
+    private fun runAiChapter() {
+        binding.tvAddSegment.isEnabled = false
+        toastOnUi(getString(R.string.breakdown_ai_batch_running, 1, 1))
+        lifecycleScope.launch {
+            val err = withContext(IO) {
+                BreakdownHelper.aiBreakdownChapter(breakdownId, chapterIndex)
+            }
+            binding.tvAddSegment.isEnabled = true
+            if (err == null) {
+                toastOnUi(R.string.breakdown_ai_done)
+            } else {
+                toastOnUi(getString(R.string.breakdown_ai_fail, err))
+            }
+            BreakdownHelper.notifyChanged()
+            loadData()
+        }
     }
 }

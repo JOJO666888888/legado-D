@@ -80,6 +80,12 @@ interface BookBreakdownDao {
     @Query("select * from breakdowns where bookName = :bookName and bookAuthor = :bookAuthor")
     fun getByBook(bookName: String, bookAuthor: String): BookBreakdown?
 
+    @Query("select * from breakdowns where bookUrl = :bookUrl and deletedAt = 0 limit 1")
+    fun getByUrl(bookUrl: String): BookBreakdown?
+
+    @Query("select * from breakdowns where bookUrl = :bookUrl and deletedAt = 0 order by updateTime desc")
+    fun flowByBookUrl(bookUrl: String): Flow<List<BookBreakdown>>
+
     @Query("select * from breakdowns where deletedAt > 0 order by deletedAt desc")
     fun flowTrash(): Flow<List<BookBreakdown>>
 

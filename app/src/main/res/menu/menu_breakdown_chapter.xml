@@ -4,11 +4,11 @@
 
     <item
         android:id="@+id/menu_ai_chapter"
-        android:title="@string/breakdown_ai_config_menu"
+        android:title="@string/breakdown_ai_chapter_menu"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_export_chapter"
-        android:title="@string/breakdown_export_menu"
+        android:title="@string/breakdown_export_chapter_title"
         app:showAsAction="never" />
 </menu>

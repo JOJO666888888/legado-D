@@ -93,6 +93,7 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
                     when (tabLayout.selectedTabPosition) {
                         1 -> viewModel.startBookmarkSearch(newText)
                         2 -> bookMaterialFragment?.search(newText)
+                        3 -> Unit // 拆书 Tab 无搜索
                         else -> viewModel.startChapterListSearch(newText)
                     }
                     return false
@@ -108,15 +109,26 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
     }
 
     override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
-        if (tabLayout.selectedTabPosition == 1) {
-            menu.setGroupVisible(R.id.menu_group_bookmark, true)
-            menu.setGroupVisible(R.id.menu_group_toc, false)
-            menu.setGroupVisible(R.id.menu_group_text, false)
-        } else {
-            menu.setGroupVisible(R.id.menu_group_bookmark, false)
-            menu.setGroupVisible(R.id.menu_group_toc, tabLayout.selectedTabPosition == 0)
-            menu.setGroupVisible(R.id.menu_group_text,
-                tabLayout.selectedTabPosition == 0 && viewModel.bookData.value?.isLocalTxt == true)
+        when (tabLayout.selectedTabPosition) {
+            1 -> {
+                menu.setGroupVisible(R.id.menu_group_bookmark, true)
+                menu.setGroupVisible(R.id.menu_group_toc, false)
+                menu.setGroupVisible(R.id.menu_group_text, false)
+            }
+
+            3 -> {
+                // 拆书 Tab:隐藏目录相关菜单
+                menu.setGroupVisible(R.id.menu_group_bookmark, false)
+                menu.setGroupVisible(R.id.menu_group_toc, false)
+                menu.setGroupVisible(R.id.menu_group_text, false)
+            }
+
+            else -> {
+                menu.setGroupVisible(R.id.menu_group_bookmark, false)
+                menu.setGroupVisible(R.id.menu_group_toc, tabLayout.selectedTabPosition == 0)
+                menu.setGroupVisible(R.id.menu_group_text,
+                    tabLayout.selectedTabPosition == 0 && viewModel.bookData.value?.isLocalTxt == true)
+            }
         }
         menu.findItem(R.id.menu_use_replace)?.isChecked =
             AppConfig.tocUiUseReplace
@@ -208,18 +220,26 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>(),
                     bookMaterialFragment = it
                 }
 
+                3 -> BreakdownTabFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("bookUrl", viewModel.bookData.value?.bookUrl)
+                        putString("bookName", viewModel.bookData.value?.name)
+                    }
+                }
+
                 else -> ChapterListFragment()
             }
         }
 
         override fun getCount(): Int {
-            return 3
+            return 4
         }
 
         override fun getPageTitle(position: Int): CharSequence {
             return when (position) {
                 1 -> getString(R.string.bookmark)
                 2 -> getString(R.string.material_library)
+                3 -> getString(R.string.breakdown_home)
                 else -> getString(R.string.chapter_list)
             }
         }
