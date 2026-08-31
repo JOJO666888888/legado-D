@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/vw_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/shape_material_sheet"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <View
+            android:layout_width="36dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="@color/btn_bg_press_2" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:overScrollMode="ifContentScrolls">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="20dp">
+
+                <io.legado.app.ui.widget.text.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp">
+
+                    <io.legado.app.lib.theme.view.ThemeEditText
+                        android:id="@+id/edit_category"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/breakdown_category"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                </io.legado.app.ui.widget.text.TextInputLayout>
+
+                <io.legado.app.ui.widget.text.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp">
+
+                    <io.legado.app.lib.theme.view.ThemeEditText
+                        android:id="@+id/edit_achievement"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/breakdown_achievement"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                </io.legado.app.ui.widget.text.TextInputLayout>
+
+                <io.legado.app.ui.widget.text.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp">
+
+                    <io.legado.app.lib.theme.view.ThemeEditText
+                        android:id="@+id/edit_title_formula"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/breakdown_title_formula"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                </io.legado.app.ui.widget.text.TextInputLayout>
+
+                <io.legado.app.ui.widget.text.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp">
+
+                    <io.legado.app.lib.theme.view.ThemeEditText
+                        android:id="@+id/edit_benchmark"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/breakdown_input_benchmark"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                </io.legado.app.ui.widget.text.TextInputLayout>
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/flex_benchmarks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="6dp"
+                    app:flexWrap="wrap" />
+
+                <io.legado.app.ui.widget.text.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp">
+
+                    <io.legado.app.lib.theme.view.ThemeEditText
+                        android:id="@+id/edit_overall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:hint="@string/breakdown_overall_note"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                </io.legado.app.ui.widget.text.TextInputLayout>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp"
+            app:flexWrap="wrap"
+            app:justifyContent="space_between">
+
+            <io.legado.app.ui.widget.text.AccentTextView
+                android:id="@+id/tv_add_benchmark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="@string/breakdown_benchmarks" />
+
+            <io.legado.app.ui.widget.text.AccentTextView
+                android:id="@+id/tv_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="@string/action_save" />
+        </com.google.android.flexbox.FlexboxLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -314,6 +314,19 @@
         <activity
             android:name=".ui.book.material.TagManageActivity"
             android:launchMode="singleTop" />
+        <!-- 拆书模块 -->
+        <activity
+            android:name=".ui.book.breakdown.BreakdownHomeActivity"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.BookBreakdownActivity"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.ChapterBreakdownActivity"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.BreakdownTrashActivity"
+            android:launchMode="singleTop" />
         <!-- 缓存界面 -->
         <activity
             android:name=".ui.book.cache.CacheActivity"

@@ -97,6 +97,13 @@
             app:iconSpaceReserved="false" />
 
         <io.legado.app.lib.prefs.Preference
+            android:icon="@drawable/ic_bubble_chart"
+            android:key="breakdownHome"
+            android:summary="@string/breakdown_home"
+            android:title="@string/breakdown_home"
+            app:iconSpaceReserved="false" />
+
+        <io.legado.app.lib.prefs.Preference
             android:icon="@drawable/ic_history"
             android:key="readRecord"
             android:summary="@string/read_record_summary"
