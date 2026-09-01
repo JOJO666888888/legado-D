@@ -29,14 +29,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <io.legado.app.ui.widget.text.AccentTextView
             android:id="@+id/btn_inject"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:contentDescription="@string/ai_agent_inject_context"
-            app:srcCompat="@drawable/ic_chapter_list"
-            app:tint="@color/white"
+            android:drawableStart="@drawable/ic_chapter_list"
+            android:text="@string/ai_agent_inject_context"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/layout_input_bar" />
 
@@ -52,44 +52,33 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_input"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            <io.legado.app.lib.theme.view.ThemeEditText
+                android:id="@+id/tie_input"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="@string/ai_agent_placeholder">
+                android:gravity="top|start"
+                android:hint="@string/ai_agent_placeholder"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="1"
+                android:maxLines="4" />
 
-                <io.legado.app.lib.theme.view.ThemeEditText
-                    android:id="@+id/tie_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="top|start"
-                    android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="1"
-                    android:maxLines="4" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
+            <io.legado.app.ui.widget.text.AccentTextView
                 android:id="@+id/btn_stop"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
+                android:drawableStart="@drawable/ic_stop_black_24dp"
                 android:text="@string/ai_agent_stop"
-                android:visibility="gone"
-                app:icon="@drawable/ic_stop_black_24dp"
-                app:iconGravity="textStart" />
+                android:visibility="gone" />
 
-            <com.google.android.material.button.MaterialButton
+            <io.legado.app.ui.widget.text.AccentTextView
                 android:id="@+id/btn_send"
-                style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="@string/ai_agent_send"
-                app:icon="@drawable/ic_send"
-                app:iconGravity="textStart" />
+                android:drawableStart="@drawable/ic_send"
+                android:text="@string/ai_agent_send" />
         </LinearLayout>
 
         <TextView
@@ -107,47 +96,43 @@
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.navigation.NavigationView
+    <LinearLayout
         android:id="@+id/nav_view"
         android:layout_width="280dp"
         android:layout_height="match_parent"
-        android:layout_gravity="start">
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="?android:attr/windowBackground">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="12dp">
+                android:layout_weight="1"
+                android:text="@string/ai_agent_title"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/ai_agent_title"
-                    android:textAppearance="?attr/textAppearanceHeadline6"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/nav_fab_new"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/ai_agent_new_conv"
-                    app:srcCompat="@drawable/ic_add"
-                    app:tint="@color/white"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
-
-            <io.legado.app.ui.widget.recycler.RecyclerViewAtPager2
-                android:id="@+id/nav_rv_convs"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+            <io.legado.app.ui.widget.text.AccentTextView
+                android:id="@+id/nav_fab_new"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/ai_agent_new_conv"
+                android:drawableStart="@drawable/ic_add"
+                android:text="@string/ai_agent_new_conv"
+                android:layout_marginStart="8dp" />
         </LinearLayout>
-    </com.google.android.material.navigation.NavigationView>
+
+        <io.legado.app.ui.widget.recycler.RecyclerViewAtPager2
+            android:id="@+id/nav_rv_convs"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -1460,7 +1460,7 @@
     <string name="ai_agent_delete_conv">删除当前对话</string>
     <string name="ai_agent_inject_context">注入书籍上下文</string>
     <string name="ai_agent_context_pick_title">选择书籍章节注入上下文</string>
-    <string name="ai_agent_context_budget_tip" formatted="false">上下文注入预算约 %1$d CJK 字符(=窗口×90%−最大输出);超出时按章节边界截断并提示。</string>
+    <string name="ai_agent_context_budget_tip">上下文注入预算约 %1$d CJK 字符(≈窗口×90%%−最大输出);超出时按章节边界截断并提示。</string>
     <string name="ai_agent_skill_manage_title">Skill / Agent 提示词管理</string>
     <string name="ai_skill_cat_all">全部</string>
     <string name="ai_skill_cat_breakdown">拆书</string>
@@ -1470,6 +1470,7 @@
     <string name="ai_skill_cat_custom">自定义</string>
     <string name="ai_skill_copy_suffix">副本</string>
     <string name="ai_skill_duplicated">已复制出可编辑副本</string>
+    <string name="ai_skill_name_required">名称必填</string>
     <string name="ai_skill_readonly_cant_delete">内置 Skill 只读,请先复制副本再编辑删除</string>
     <string name="ai_skill_migrate_done">已把旧拆书模板一次性迁入 Skill 体系</string>
     <string name="ai_agent_skill_bind_title">绑定拆书 Skill(模板)</string>

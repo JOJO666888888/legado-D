@@ -15,6 +15,7 @@ import io.legado.app.help.ai.AiAgentHelper
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.observeEvent
 import io.legado.app.utils.postEvent
+import io.legado.app.utils.showDialogFragment
 import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,7 @@ class AiSkillManageActivity :
     override val binding by viewBinding(ActivityAiSkillManageBinding::inflate)
     override val viewModel by viewModels<AiSkillManageViewModel>()
 
-    private val adapter = AiSkillAdapter(this, this)
+    private val adapter: AiSkillAdapter by lazy { AiSkillAdapter(this, this) }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.titleBar.setBackgroundColor(primaryColor)
@@ -143,15 +144,6 @@ class AiSkillManageActivity :
     }
 
     private fun showEditor(skill: AiAgentSkill?) {
-        AiSkillEditor.show(this, skill) { updated ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                if (updated.id == 0L) {
-                    appDb.aiAgentSkillDao.insert(updated)
-                } else {
-                    appDb.aiAgentSkillDao.update(updated)
-                }
-                postEvent(EventBus.AI_AGENT_SKILL_CHANGED, updated.id.toString())
-            }
-        }
+        showDialogFragment(AiSkillEditorDialog.newInstance(skill))
     }
 }

@@ -138,8 +138,8 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
                 binding.cardSkillRow.visibility = View.VISIBLE
                 binding.tvSkillName.text = buildString {
                     append(s.name)
-                    append(if (s.readOnly) " (内置/只读)" else " (自定义)")
-                    if (bd.skillId == 0L) append(" · 默认回退")
+                    append(if (s.readOnly) " (内置)" else " (自定义)")
+                    if (bd.skillId == 0L) append(" ·回退")
                 }
                 binding.cardSkillRow.setOnClickListener { pickSkillFor(bd) }
             }

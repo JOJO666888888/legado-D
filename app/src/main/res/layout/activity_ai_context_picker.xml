@@ -24,14 +24,14 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <com.google.android.material.button.MaterialButton
+            <io.legado.app.ui.widget.text.AccentTextView
                 android:id="@+id/btn_pick_book"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingVertical="12dp"
                 android:text="@string/breakdown_floating_pick_book"
-                app:icon="@drawable/ic_book_has"
-                app:iconGravity="textStart" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/tv_selected_book"
@@ -48,14 +48,11 @@
                 android:text="起始章节"
                 android:textAppearance="?attr/textAppearanceCaption" />
 
-            <com.google.android.material.slider.RangeSlider
-                android:id="@+id/range_start"
+            <SeekBar
+                android:id="@+id/seek_start"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:valueFrom="0"
-                android:valueTo="0"
-                android:stepSize="1"
-                tools:values="0,0" />
+                android:max="0" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -64,14 +61,11 @@
                 android:text="结束章节"
                 android:textAppearance="?attr/textAppearanceCaption" />
 
-            <com.google.android.material.slider.RangeSlider
-                android:id="@+id/range_end"
+            <SeekBar
+                android:id="@+id/seek_end"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:valueFrom="0"
-                android:valueTo="0"
-                android:stepSize="1"
-                tools:values="0,19" />
+                android:max="0" />
 
             <TextView
                 android:id="@+id/tv_range_summary"
@@ -91,14 +85,15 @@
                 android:textColor="@color/md_amber_700"
                 android:textSize="12sp" />
 
-            <com.google.android.material.button.MaterialButton
+            <io.legado.app.ui.widget.text.AccentTextView
                 android:id="@+id/btn_confirm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:paddingVertical="12dp"
                 android:text="@android:string/ok"
-                app:icon="@drawable/ic_check"
-                app:iconGravity="textStart" />
+                android:textSize="15sp" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

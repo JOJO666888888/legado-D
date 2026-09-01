@@ -164,66 +164,68 @@ object AiAgentRunner {
         var flushAcc = 0
         val flushEach = 5
         try {
-            SseStreamClient.streamChat(
-                system = system,
-                user = user,
-                baseUrl = AppConfig.aiBaseUrl,
-                apiKey = AppConfig.aiApiKey,
-                model = AppConfig.aiModel,
-                jsonMode = true,
-                temperature = 0.2
-            ).onEach { ev ->
-                when (ev) {
-                    is SseStreamClient.StreamEvent.Delta -> {
-                        fullBuilder.append(ev.chunk)
-                        flushAcc++
-                        if (flushAcc >= flushEach) {
-                            flushAcc = 0
-                            val t = System.currentTimeMillis()
-                            appDb.aiAgentMsgDao.appendContent(msgId, ev.chunk, t)
-                            postEvent(EventBus.AI_AGENT_MSG_UPDATED, convId.toString())
+            kotlinx.coroutines.supervisorScope {
+                SseStreamClient.streamChat(
+                    system = system,
+                    user = user,
+                    baseUrl = AppConfig.aiBaseUrl,
+                    apiKey = AppConfig.aiApiKey,
+                    model = AppConfig.aiModel,
+                    jsonMode = true,
+                    temperature = 0.2
+                ).collect { ev ->
+                    when (ev) {
+                        is SseStreamClient.StreamEvent.Delta -> {
+                            fullBuilder.append(ev.chunk)
+                            flushAcc++
+                            if (flushAcc >= flushEach) {
+                                flushAcc = 0
+                                val t = System.currentTimeMillis()
+                                appDb.aiAgentMsgDao.appendContent(msgId, ev.chunk, t)
+                                postEvent(EventBus.AI_AGENT_MSG_UPDATED, convId.toString())
+                            }
                         }
-                    }
-                    is SseStreamClient.StreamEvent.Done -> {
-                        val delta = if (fullBuilder.length < ev.fullContent.length) {
-                            ev.fullContent.substring(fullBuilder.length)
-                        } else ""
-                        if (delta.isNotEmpty()) {
-                            appDb.aiAgentMsgDao.appendContent(msgId, delta, System.currentTimeMillis())
-                        }
-                        fullBuilder.clear().append(ev.fullContent)
-                        appDb.aiAgentConvDao.setState(convId, AiAgentConv.STATE_PARSING, System.currentTimeMillis())
-                        appDb.aiAgentMsgDao.finalizeContent(
-                            id = msgId,
-                            content = fullBuilder.toString(),
-                            status = AiAgentMsg.STATUS_PARSING,
-                            written = false,
-                            time = System.currentTimeMillis()
-                        )
-                        postEvent(EventBus.AI_AGENT_MSG_UPDATED, convId.toString())
-                        val result = BreakdownAiRunner.parseAndVerify(fullBuilder.toString())
-                        val written = withContext(Dispatchers.IO) {
-                            val err = BreakdownHelper.saveAiChapter(
-                                bdId = bd.id,
-                                chapterIndex = chapterIndex,
-                                chapterName = chapterTitle,
-                                numberedContent = numberedContent,
-                                result = result
+                        is SseStreamClient.StreamEvent.Done -> {
+                            val delta = if (fullBuilder.length < ev.fullContent.length) {
+                                ev.fullContent.substring(fullBuilder.length)
+                            } else ""
+                            if (delta.isNotEmpty()) {
+                                appDb.aiAgentMsgDao.appendContent(msgId, delta, System.currentTimeMillis())
+                            }
+                            fullBuilder.clear().append(ev.fullContent)
+                            appDb.aiAgentConvDao.setState(convId, AiAgentConv.STATE_PARSING, System.currentTimeMillis())
+                            appDb.aiAgentMsgDao.finalizeContent(
+                                id = msgId,
+                                content = fullBuilder.toString(),
+                                status = AiAgentMsg.STATUS_PARSING,
+                                written = false,
+                                time = System.currentTimeMillis()
                             )
-                            err == null
+                            postEvent(EventBus.AI_AGENT_MSG_UPDATED, convId.toString())
+                            val result = BreakdownAiRunner.parseAndVerify(fullBuilder.toString())
+                            val written = withContext(Dispatchers.IO) {
+                                val err = BreakdownHelper.saveAiChapter(
+                                    bdId = bd.id,
+                                    chapterIndex = chapterIndex,
+                                    chapterName = chapterTitle,
+                                    numberedContent = numberedContent,
+                                    result = result
+                                )
+                                err == null
+                            }
+                            appDb.aiAgentMsgDao.finalizeContent(
+                                id = msgId,
+                                content = fullBuilder.toString(),
+                                status = AiAgentMsg.STATUS_DONE,
+                                written = written,
+                                time = System.currentTimeMillis()
+                            )
+                            appDb.aiAgentConvDao.setState(convId, AiAgentConv.STATE_IDLE, System.currentTimeMillis())
                         }
-                        appDb.aiAgentMsgDao.finalizeContent(
-                            id = msgId,
-                            content = fullBuilder.toString(),
-                            status = AiAgentMsg.STATUS_DONE,
-                            written = written,
-                            time = System.currentTimeMillis()
-                        )
-                        appDb.aiAgentConvDao.setState(convId, AiAgentConv.STATE_IDLE, System.currentTimeMillis())
+                        is SseStreamClient.StreamEvent.Error -> throw ev.t
                     }
-                    is SseStreamClient.StreamEvent.Error -> throw ev.t
                 }
-            }.launchIn(kotlinx.coroutines.CoroutineScope(Dispatchers.IO)).join()
+            }
         } catch (ce: CancellationException) {
             appDb.aiAgentMsgDao.finalizeContent(
                 id = msgId,
@@ -233,6 +235,25 @@ object AiAgentRunner {
                 time = System.currentTimeMillis()
             )
             throw ce
+        } catch (t: Throwable) {
+            // SSE 层网络/上层错误:以错误消息落库并继续(避免协程崩溃)
+            appDb.aiAgentMsgDao.finalizeContent(
+                id = msgId,
+                content = fullBuilder.toString(),
+                status = AiAgentMsg.STATUS_DONE,
+                written = false,
+                time = System.currentTimeMillis()
+            )
+            val errMsg = AiAgentMsg(
+                convId = convId,
+                sortOrder = appDb.aiAgentMsgDao.nextSortOrder(convId) + 1,
+                role = AiAgentMsg.ROLE_SYSTEM,
+                content = t.message ?: "AI 请求失败",
+                kind = AiAgentMsg.KIND_ERROR
+            )
+            appDb.aiAgentMsgDao.insert(errMsg)
+            appDb.aiAgentConvDao.setError(convId, t.message ?: "AI 请求失败", System.currentTimeMillis())
+            return
         } finally {
             postEvent(EventBus.AI_AGENT_MSG_UPDATED, convId.toString())
         }
@@ -272,43 +293,45 @@ object AiAgentRunner {
             try {
                 val full = StringBuilder(4_096)
                 var acc = 0
-                SseStreamClient.streamChat(
-                    system = systemPrompt,
-                    user = lastUser,
-                    baseUrl = AppConfig.aiBaseUrl,
-                    apiKey = AppConfig.aiApiKey,
-                    model = AppConfig.aiModel,
-                    messages = historyMessages,
-                    jsonMode = false,
-                    temperature = 0.7
-                ).onEach { ev ->
-                    when (ev) {
-                        is SseStreamClient.StreamEvent.Delta -> {
-                            full.append(ev.chunk)
-                            if (++acc % 5 == 0) {
-                                appDb.aiAgentMsgDao.appendContent(
-                                    assistantMsgId, ev.chunk, System.currentTimeMillis()
-                                )
-                                postEvent(EventBus.AI_AGENT_MSG_UPDATED, conv.id.toString())
+                kotlinx.coroutines.supervisorScope {
+                    SseStreamClient.streamChat(
+                        system = systemPrompt,
+                        user = lastUser,
+                        baseUrl = AppConfig.aiBaseUrl,
+                        apiKey = AppConfig.aiApiKey,
+                        model = AppConfig.aiModel,
+                        messages = historyMessages,
+                        jsonMode = false,
+                        temperature = 0.7
+                    ).collect { ev ->
+                        when (ev) {
+                            is SseStreamClient.StreamEvent.Delta -> {
+                                full.append(ev.chunk)
+                                if (++acc % 5 == 0) {
+                                    appDb.aiAgentMsgDao.appendContent(
+                                        assistantMsgId, ev.chunk, System.currentTimeMillis()
+                                    )
+                                    postEvent(EventBus.AI_AGENT_MSG_UPDATED, conv.id.toString())
+                                }
                             }
+                            is SseStreamClient.StreamEvent.Done -> {
+                                val tail = if (ev.fullContent.length > full.length) {
+                                    ev.fullContent.substring(full.length)
+                                } else ""
+                                if (tail.isNotEmpty()) full.append(tail)
+                                appDb.aiAgentMsgDao.finalizeContent(
+                                    id = assistantMsgId,
+                                    content = full.toString(),
+                                    status = AiAgentMsg.STATUS_DONE,
+                                    written = false,
+                                    time = System.currentTimeMillis()
+                                )
+                                appDb.aiAgentConvDao.setState(conv.id, AiAgentConv.STATE_IDLE, System.currentTimeMillis())
+                            }
+                            is SseStreamClient.StreamEvent.Error -> throw ev.t
                         }
-                        is SseStreamClient.StreamEvent.Done -> {
-                            val tail = if (ev.fullContent.length > full.length) {
-                                ev.fullContent.substring(full.length)
-                            } else ""
-                            if (tail.isNotEmpty()) full.append(tail)
-                            appDb.aiAgentMsgDao.finalizeContent(
-                                id = assistantMsgId,
-                                content = full.toString(),
-                                status = AiAgentMsg.STATUS_DONE,
-                                written = false,
-                                time = System.currentTimeMillis()
-                            )
-                            appDb.aiAgentConvDao.setState(conv.id, AiAgentConv.STATE_IDLE, System.currentTimeMillis())
-                        }
-                        is SseStreamClient.StreamEvent.Error -> throw ev.t
                     }
-                }.launchIn(kotlinx.coroutines.CoroutineScope(Dispatchers.IO)).join()
+                }
             } catch (_: CancellationException) {
                 appDb.aiAgentMsgDao.finalizeContent(
                     id = assistantMsgId,

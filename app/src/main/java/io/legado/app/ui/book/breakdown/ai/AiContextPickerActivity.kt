@@ -42,12 +42,24 @@ class AiContextPickerActivity :
         binding.tvBudget.text = getString(R.string.ai_agent_context_budget_tip, budget)
         binding.btnPickBook.setOnClickListener { pickBook() }
         binding.btnConfirm.setOnClickListener { confirmAndReturn() }
-        binding.rangeStart.addOnChangeListener { _, value, _ ->
-            startIdx = value.toInt(); updateRangeSummary()
-        }
-        binding.rangeEnd.addOnChangeListener { _, value, _ ->
-            endIdx = value.toInt(); updateRangeSummary()
-        }
+        binding.seekStart.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar, progress: Int, fromUser: Boolean) {
+                startIdx = progress
+                if (startIdx > endIdx && endIdx != 0) startIdx = endIdx
+                updateRangeSummary()
+            }
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar) = Unit
+        })
+        binding.seekEnd.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar, progress: Int, fromUser: Boolean) {
+                endIdx = progress
+                if (endIdx < startIdx) endIdx = startIdx
+                updateRangeSummary()
+            }
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar) = Unit
+        })
     }
 
     private fun pickBook() {
@@ -85,14 +97,13 @@ class AiContextPickerActivity :
                 return@launch
             }
             withContext(Dispatchers.Main) {
-                binding.rangeStart.valueFrom = 0f
-                binding.rangeStart.valueTo = (list.size - 1).toFloat()
-                binding.rangeStart.values = listOf(0f)
-                binding.rangeEnd.valueFrom = 0f
-                binding.rangeEnd.valueTo = (list.size - 1).toFloat()
-                binding.rangeEnd.values = listOf((list.size - 1).coerceAtMost(19).toFloat())
+                val max = (list.size - 1).coerceAtLeast(0)
+                binding.seekStart.max = max
+                binding.seekStart.progress = 0
+                binding.seekEnd.max = max
+                binding.seekEnd.progress = max.coerceAtMost(19)
                 startIdx = 0
-                endIdx = binding.rangeEnd.values.first().toInt()
+                endIdx = binding.seekEnd.progress
                 updateRangeSummary()
             }
         }

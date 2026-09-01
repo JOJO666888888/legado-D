@@ -1567,7 +1567,7 @@
     <string name="ai_agent_delete_conv">Delete current chat</string>
     <string name="ai_agent_inject_context">Inject book context</string>
     <string name="ai_agent_context_pick_title">Inject Book Chapters Context</string>
-    <string name="ai_agent_context_budget_tip" formatted="false">Context injection budget: approx %1$d CJK chars (window×90% − max output). Exceeding will be truncated by chapter boundary.</string>
+    <string name="ai_agent_context_budget_tip">Context injection budget: approx %1$d CJK chars (window×90%% − max output). Exceeding will be truncated by chapter boundary.</string>
     <string name="ai_agent_skill_manage_title">Skills &amp; Agent Prompts</string>
     <string name="ai_skill_cat_all">All</string>
     <string name="ai_skill_cat_breakdown">Breakdown</string>
@@ -1577,6 +1577,7 @@
     <string name="ai_skill_cat_custom">Custom</string>
     <string name="ai_skill_copy_suffix">Copy</string>
     <string name="ai_skill_duplicated">Skill duplicated</string>
+    <string name="ai_skill_name_required">Name is required</string>
     <string name="ai_skill_readonly_cant_delete">Built-in skill is read-only. Duplicate to edit.</string>
     <string name="ai_skill_migrate_done">Legacy breakdown templates migrated to Skills</string>
     <string name="ai_agent_skill_bind_title">Bind Breakdown Skill (Template)</string>

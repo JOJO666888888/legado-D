@@ -50,8 +50,8 @@ class AiAgentActivity :
     override val binding by viewBinding(ActivityAiAgentBinding::inflate)
     override val viewModel by viewModels<AiAgentViewModel>()
 
-    private val msgAdapter = AiAgentMsgAdapter(this, this)
-    private val convAdapter = AiAgentConvAdapter(this, this)
+    private val msgAdapter by lazy { AiAgentMsgAdapter(this, this) }
+    private val convAdapter by lazy { AiAgentConvAdapter(this, this) }
     private var currentConvId: Long = -1L
 
     private val pickContextLauncher =
