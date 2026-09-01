@@ -17,6 +17,7 @@ import io.legado.app.constant.AppLog
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BookBreakdown
 import io.legado.app.help.breakdown.BreakdownHelper
+import io.legado.app.help.breakdown.BreakdownFloatingWindow
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.view.ThemeEditText
@@ -60,6 +61,7 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
             showDeleteMenu(breakdown)
         }
     }
+    private var floatingWindow: BreakdownFloatingWindow? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.titleBar.title = getString(R.string.breakdown_home)
@@ -67,7 +69,16 @@ class BreakdownHomeActivity : VMBaseActivity<ActivityBreakdownHomeBinding, Break
         binding.rvBreakdown.layoutManager = LinearLayoutManager(this)
         binding.rvBreakdown.adapter = adapter
         binding.editSearch.setSingleLine()
+        attachFloatingWindow()
         observeList()
+    }
+
+    private fun attachFloatingWindow() {
+        if (floatingWindow != null) return
+        floatingWindow = BreakdownFloatingWindow(
+            activity = this,
+            lifecycle = lifecycle
+        ).also { it.attach() }
     }
 
     private fun observeList() {

@@ -1427,6 +1427,7 @@
     <string name="breakdown_ai_fail">AI 拆解失败:%1$s</string>
     <string name="breakdown_ai_batch_scope">批量拆解范围</string>
     <string name="breakdown_ai_batch_unfinished">全部未拆章节</string>
+    <string name="breakdown_skill_bind">绑定 Skill/拆书模板</string>
     <string name="breakdown_ai_batch_confirm">将顺序拆解 %1$d 章?过程有进度提示,每章草稿需人工核对后确认。</string>
     <string name="breakdown_ai_batch_done">批量完成:成功 %1$d · 失败 %2$d</string>
     <string name="breakdown_ai_batch_running">正在拆解第 %1$d/%2$d 章…</string>
@@ -1436,4 +1437,45 @@
     <string name="breakdown_f9_empty">本书尚未创建拆书档案。\n创建后可在此查看各章拆解状态。</string>
     <string name="breakdown_to_material">转素材</string>
     <string name="breakdown_to_material_done">已保存到素材库</string>
+    <!-- 拆书悬浮小窗 -->
+    <string name="breakdown_floating_toggle">悬浮原文小窗</string>
+    <string name="breakdown_floating_title">原文悬浮小窗</string>
+    <string name="breakdown_floating_no_content">章节内容未缓存,请先在阅读页打开该章一次。</string>
+    <string name="breakdown_floating_no_selection">请先在原文中选中文本,再点击收录。</string>
+    <string name="breakdown_floating_collect">收录素材</string>
+    <string name="breakdown_floating_collect_done">已收录到素材库</string>
+    <string name="breakdown_floating_note_hint">批注(可选)</string>
+    <string name="breakdown_floating_tags_hint">标签,英文逗号分隔(可选)</string>
+    <string name="breakdown_floating_materials_badge">素材 %1$d 条</string>
+    <string name="breakdown_floating_pick_book">选书</string>
+    <string name="breakdown_floating_pick_chapter">选章</string>
+    <string name="breakdown_floating_close_panel">收起</string>
+    <!-- AI Agent 辅助 F13 -->
+    <string name="ai_agent_title">AI Agent 辅助</string>
+    <string name="ai_agent_new_conv">新建对话</string>
+    <string name="ai_agent_placeholder">和 AI 对话或下达任务…</string>
+    <string name="ai_agent_send">发送</string>
+    <string name="ai_agent_stop">停止生成</string>
+    <string name="ai_agent_clear_conv">清空当前对话</string>
+    <string name="ai_agent_delete_conv">删除当前对话</string>
+    <string name="ai_agent_inject_context">注入书籍上下文</string>
+    <string name="ai_agent_context_pick_title">选择书籍章节注入上下文</string>
+    <string name="ai_agent_context_budget_tip" formatted="false">上下文注入预算约 %1$d CJK 字符(=窗口×90%−最大输出);超出时按章节边界截断并提示。</string>
+    <string name="ai_agent_skill_manage_title">Skill / Agent 提示词管理</string>
+    <string name="ai_skill_cat_all">全部</string>
+    <string name="ai_skill_cat_breakdown">拆书</string>
+    <string name="ai_skill_cat_persona">人设</string>
+    <string name="ai_skill_cat_tool">工具</string>
+    <string name="ai_skill_cat_methodology">方法论</string>
+    <string name="ai_skill_cat_custom">自定义</string>
+    <string name="ai_skill_copy_suffix">副本</string>
+    <string name="ai_skill_duplicated">已复制出可编辑副本</string>
+    <string name="ai_skill_readonly_cant_delete">内置 Skill 只读,请先复制副本再编辑删除</string>
+    <string name="ai_skill_migrate_done">已把旧拆书模板一次性迁入 Skill 体系</string>
+    <string name="ai_agent_skill_bind_title">绑定拆书 Skill(模板)</string>
+    <string name="ai_agent_empty_tip">暂无消息。点右上角「注入书籍上下文」或直接输入提问即可开始。</string>
+    <string name="ai_agent_conv_kind_chat">对话</string>
+    <string name="ai_agent_conv_kind_breakdown">拆书任务</string>
+    <string name="ai_agent_conv_kind_task">其他任务</string>
+    <string name="ai_agent_conv_new_hint">新对话</string>
 </resources>

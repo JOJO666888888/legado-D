@@ -84,6 +84,9 @@ object Backup {
             "breakdown.json",
             "breakdown_chapter.json",
             "breakdown_segment.json",
+            "ai_agent_skill.json",
+            "ai_agent_conv.json",
+            "ai_agent_msg.json",
             DirectLinkUpload.ruleFileName,
             ReadBookConfig.configFileName,
             ReadBookConfig.shareConfigFileName,
@@ -161,6 +164,9 @@ object Backup {
         writeListToJson(appDb.bookBreakdownDao.all, "breakdown.json", backupPath)
         writeListToJson(appDb.breakdownChapterDao.all, "breakdown_chapter.json", backupPath)
         writeListToJson(appDb.breakdownSegmentDao.all, "breakdown_segment.json", backupPath)
+        writeListToJson(appDb.aiAgentSkillDao.all, "ai_agent_skill.json", backupPath)
+        writeListToJson(appDb.aiAgentConvDao.all, "ai_agent_conv.json", backupPath)
+        writeListToJson(appDb.aiAgentMsgDao.all, "ai_agent_msg.json", backupPath)
         GSON.toJson(appDb.serverDao.all).let { json ->
             aes.runCatching {
                 encryptBase64(json)

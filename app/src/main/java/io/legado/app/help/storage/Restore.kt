@@ -149,6 +149,21 @@ object Restore {
         fileToListT<BreakdownSegment>(path, "breakdown_segment.json")?.let {
             appDb.breakdownSegmentDao.upsert(*it.toTypedArray())
         }
+        runCatching {
+            fileToListT<io.legado.app.data.entities.AiAgentSkill>(path, "ai_agent_skill.json")?.let { list ->
+                appDb.aiAgentSkillDao.insert(*list.toTypedArray())
+            }
+        }
+        runCatching {
+            fileToListT<io.legado.app.data.entities.AiAgentConv>(path, "ai_agent_conv.json")?.let { list ->
+                appDb.aiAgentConvDao.insert(*list.toTypedArray())
+            }
+        }
+        runCatching {
+            fileToListT<io.legado.app.data.entities.AiAgentMsg>(path, "ai_agent_msg.json")?.let { list ->
+                appDb.aiAgentMsgDao.insert(*list.toTypedArray())
+            }
+        }
         fileToListT<BookGroup>(path, "bookGroup.json")?.let {
             appDb.bookGroupDao.insert(*it.toTypedArray())
         }

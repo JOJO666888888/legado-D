@@ -333,6 +333,19 @@
         <activity
             android:name=".ui.book.breakdown.AiConfigActivity"
             android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.book.breakdown.ai.AiSkillManageActivity"
+            android:launchMode="singleTop"
+            android:label="@string/ai_agent_skill_manage_title" />
+        <activity
+            android:name=".ui.book.breakdown.ai.AiAgentActivity"
+            android:launchMode="singleTop"
+            android:label="@string/ai_agent_title"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.book.breakdown.ai.AiContextPickerActivity"
+            android:launchMode="singleTop"
+            android:label="@string/ai_agent_context_pick_title" />
         <!-- 缓存界面 -->
         <activity
             android:name=".ui.book.cache.CacheActivity"

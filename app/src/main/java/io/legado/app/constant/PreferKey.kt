@@ -49,6 +49,10 @@ object PreferKey {
     const val aiApiKey = "aiApiKey"
     const val aiModel = "aiModel"
     const val aiMaxSendChars = "aiMaxSendChars"
+    /** 用户可覆盖:最大输出 Token 默认 64000;留空=按模型能力表。仅存 SharedPreferences,不入备份 */
+    const val aiMaxOutputTokens = "aiMaxOutputTokens"
+    /** 用户可覆盖:上下文窗口 Token(默认按模型能力表自动填, 留空=模型推断);API 配置 UI 暴露;仅存 SharedPreferences,不入备份 */
+    const val aiContextWindowTokens = "aiContextWindowTokens"
     const val bookshelfLayout = "bookshelfLayout"
     const val bookshelfSort = "bookshelfSort"
     const val bookExportFileName = "bookExportFileName"

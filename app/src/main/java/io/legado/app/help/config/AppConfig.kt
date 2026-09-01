@@ -325,6 +325,20 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
             appCtx.putPrefInt(PreferKey.aiMaxSendChars, value)
         }
 
+    /** 用户覆盖:最大输出 Token,0=使用模型默认能力表(64K 兜底) */
+    var aiMaxOutputTokens: Int
+        get() = appCtx.getPrefInt(PreferKey.aiMaxOutputTokens, 0)
+        set(value) {
+            appCtx.putPrefInt(PreferKey.aiMaxOutputTokens, value)
+        }
+
+    /** 用户覆盖:上下文窗口 Token,0=按模型能力表自动推断(未知模型兜底 200K) */
+    var aiContextWindowTokens: Int
+        get() = appCtx.getPrefInt(PreferKey.aiContextWindowTokens, 0)
+        set(value) {
+            appCtx.putPrefInt(PreferKey.aiContextWindowTokens, value)
+        }
+
     val autoRefreshBook: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.autoRefresh)
 

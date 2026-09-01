@@ -104,6 +104,82 @@ object BreakdownHelper {
         return sb.toString() to sentLines
     }
 
+    /** 便捷重载:直接给原始章节文本,内部净化 + 编号,返回 (编号文本, 已编号末行)。 */
+    fun buildNumberedContent(rawChapterText: String): String {
+        val lines = rawChapterText.lineSequence().filter { it.isNotBlank() }.toList().toTypedArray()
+        return buildNumberedContent(lines, Int.MAX_VALUE).first
+    }
+
+    /**
+     * AI 拆书结果落库(草稿态,不覆盖人工已确认数据)。
+     *
+     * @return 成功返回 null,失败返回错误文案(方便上层写 KIND_ERROR banner)。
+     */
+    suspend fun saveAiChapter(
+        bdId: Long,
+        chapterIndex: Int,
+        chapterName: String,
+        numberedContent: String,
+        result: BreakdownAiRunner.AiChapterResult
+    ): String? = withContext(IO) {
+        try {
+            val record = appDb.breakdownChapterDao.getByBreakdownAndIndex(bdId, chapterIndex)
+            val status = record?.status ?: STATUS_NONE
+            if (status == STATUS_CONFIRMED) {
+                // 红线 R:AI 结果不覆盖人工已确认数据
+                return@withContext "本章已确认,不写入 AI 草稿(如需重拆请用户在章节页二次确认)"
+            }
+            val recordId = if (record != null) {
+                record.id
+            } else {
+                appDb.breakdownChapterDao.upsert(
+                    BreakdownChapter(
+                        breakdownId = bdId,
+                        chapterIndex = chapterIndex,
+                        chapterName = chapterName
+                    )
+                ).firstOrNull() ?: return@withContext "章记录创建失败"
+            }
+            val lines = numberedContent.lineSequence().filter { it.isNotBlank() }.toList().toTypedArray()
+            val finalized = BreakdownAiRunner.finalizeSegments(result.segments, lines)
+            appDb.breakdownSegmentDao.deleteByChapter(recordId)
+            val now = System.currentTimeMillis()
+            finalized.forEachIndexed { i, seg ->
+                val s = refreshSegmentPos(
+                    BreakdownSegment(
+                        chapterId = recordId,
+                        sortOrder = i,
+                        startLine = seg.startLine,
+                        endLine = seg.endLine,
+                        label = seg.label,
+                        contentSummary = seg.contentSummary,
+                        rhythmNote = seg.rhythmNote,
+                        highlights = seg.highlights.joinToString("\n"),
+                        needCheck = seg.needCheck,
+                        createTime = now,
+                        updateTime = now
+                    ),
+                    lines
+                )
+                appDb.breakdownSegmentDao.upsert(s)
+            }
+            val updated = appDb.breakdownChapterDao.get(recordId)!!.copy(
+                summary = result.chapterSummary,
+                status = STATUS_DRAFT,
+                aiModel = io.legado.app.help.config.AppConfig.aiModel,
+                updateTime = now
+            )
+            appDb.breakdownChapterDao.update(updated)
+            appDb.bookBreakdownDao.get(bdId)?.let { bd ->
+                appDb.bookBreakdownDao.update(bd.copy(updateTime = now))
+            }
+            notifyChanged()
+            null
+        } catch (e: Exception) {
+            e.message ?: "写入拆书草稿失败"
+        }
+    }
+
     /* --------------------------- 行号↔偏移互算 --------------------------- */
 
     /**

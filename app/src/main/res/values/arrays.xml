@@ -208,4 +208,12 @@
 		<item>Customize</item>
 	</string-array>
 
+	<string-array name="ai_skill_categories">
+		<item>@string/ai_skill_cat_breakdown</item>
+		<item>@string/ai_skill_cat_persona</item>
+		<item>@string/ai_skill_cat_tool</item>
+		<item>@string/ai_skill_cat_methodology</item>
+		<item>@string/ai_skill_cat_custom</item>
+	</string-array>
+
 </resources>

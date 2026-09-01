@@ -418,4 +418,17 @@ object DatabaseMigrations {
     )
     class Migration_84_85 : AutoMigrationSpec
 
+    /**
+     * v91→v92:新增三张 AI Agent 表(skills/convs/msgs)以及拆书档案 skillId 列。
+     * AutoMigration 会自动建表建列;这里的 onPostMigrate 一次性把旧 breakdownTemplates 迁入
+     * AiAgentSkill(旧模板只读→内置复制副本),并更新旧档案的 templateId→skillId 映射,
+     * 同时确保青山式拆书默认 skill(builtinId=breakdown_qingshan)存在。
+     */
+    @Suppress("ClassName")
+    class Migration_91_92 : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            io.legado.app.help.ai.AiAgentTemplateMigrator.migrateLegacyTemplates(db)
+        }
+    }
+
 }

@@ -18,6 +18,9 @@ import io.legado.app.data.dao.BookBreakdownDao
 import io.legado.app.data.dao.BreakdownChapterDao
 import io.legado.app.data.dao.BreakdownSegmentDao
 import io.legado.app.data.dao.BreakdownTemplateDao
+import io.legado.app.data.dao.AiAgentSkillDao
+import io.legado.app.data.dao.AiAgentConvDao
+import io.legado.app.data.dao.AiAgentMsgDao
 import io.legado.app.data.dao.CacheDao
 import io.legado.app.data.dao.CookieDao
 import io.legado.app.data.dao.DictRuleDao
@@ -45,6 +48,9 @@ import io.legado.app.data.entities.Bookmark
 import io.legado.app.data.entities.BreakdownChapter
 import io.legado.app.data.entities.BreakdownSegment
 import io.legado.app.data.entities.BreakdownTemplate
+import io.legado.app.data.entities.AiAgentSkill
+import io.legado.app.data.entities.AiAgentConv
+import io.legado.app.data.entities.AiAgentMsg
 import io.legado.app.data.entities.Cache
 import io.legado.app.data.entities.Cookie
 import io.legado.app.data.entities.DictRule
@@ -78,7 +84,7 @@ val appDb by lazy {
 }
 
 @Database(
-    version = 91,
+    version = 92,
     exportSchema = true,
     entities = [Book::class, BookGroup::class, BookSource::class, BookChapter::class,
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
@@ -86,7 +92,8 @@ val appDb by lazy {
         RssStar::class, TxtTocRule::class, ReadRecord::class, HttpTTS::class, Cache::class,
         RuleSub::class, DictRule::class, KeyboardAssist::class, Server::class,
         Material::class, BreakdownTemplate::class, BookBreakdown::class,
-        BreakdownChapter::class, BreakdownSegment::class],
+        BreakdownChapter::class, BreakdownSegment::class,
+        AiAgentSkill::class, AiAgentConv::class, AiAgentMsg::class],
     views = [BookSourcePart::class],
     autoMigrations = [
         AutoMigration(from = 43, to = 44),
@@ -136,7 +143,8 @@ val appDb by lazy {
         AutoMigration(from = 87, to = 88),
         AutoMigration(from = 88, to = 89),
         AutoMigration(from = 89, to = 90),
-        AutoMigration(from = 90, to = 91)
+        AutoMigration(from = 90, to = 91),
+        AutoMigration(from = 91, to = 92, spec = DatabaseMigrations.Migration_91_92::class)
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -167,6 +175,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val bookBreakdownDao: BookBreakdownDao
     abstract val breakdownChapterDao: BreakdownChapterDao
     abstract val breakdownSegmentDao: BreakdownSegmentDao
+    abstract val aiAgentSkillDao: AiAgentSkillDao
+    abstract val aiAgentConvDao: AiAgentConvDao
+    abstract val aiAgentMsgDao: AiAgentMsgDao
 
     companion object {
 
@@ -300,6 +311,8 @@ abstract class AppDatabase : RoomDatabase() {
                         )
                     }
                 }
+                // 内置青山式拆书 Skill + 旧模板迁移兜底(Migration 没执行到或首次建库时)
+                io.legado.app.help.ai.AiAgentTemplateMigrator.ensureMigratedInOnOpen()
             }
         }
 

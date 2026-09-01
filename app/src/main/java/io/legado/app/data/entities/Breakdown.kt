@@ -60,6 +60,9 @@ data class BookBreakdown(
     // 可选回查封面/跳转
     var bookUrl: String = "",
     var templateId: Long = 0,
+    /** 绑定的 AI Agent Skill id(分类 breakdown)。0=回退默认拆书 skill。替代旧 templateId 单一口径,旧 templateId 保留作只读兼容 */
+    @androidx.room.ColumnInfo(defaultValue = "0")
+    var skillId: Long = 0,
     // 品类,如「玄幻,东方玄幻」
     var category: String = "",
     // 成绩,如「男生月票榜NO.21」

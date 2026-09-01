@@ -12,17 +12,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppLog
+import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.dao.BreakdownChapterWithSegments
 import io.legado.app.data.entities.BookBreakdown
 import io.legado.app.databinding.ActivityBookBreakdownBinding
 import io.legado.app.help.breakdown.BreakdownHelper
+import io.legado.app.help.breakdown.BreakdownFloatingWindow
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.book.breakdown.BreakdownChapterAdapter.ChapterRow
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.flowWithLifecycleAndDatabaseChange
+import io.legado.app.utils.observeEvent
 import io.legado.app.utils.setEdgeEffectColor
 import io.legado.app.utils.showDialogFragment
 import io.legado.app.utils.startActivity
@@ -48,6 +51,7 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
     private val bookChapters = MutableStateFlow<List<io.legado.app.data.entities.BookChapter>>(emptyList())
     private var breakdown: BookBreakdown? = null
     private var foldUnstarted = false
+    private var floatingWindow: BreakdownFloatingWindow? = null
 
     private val adapter by lazy {
         BreakdownChapterAdapter(this).apply {
@@ -66,6 +70,9 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
         binding.tvFoldUnstarted.setOnClickListener {
             foldUnstarted = !foldUnstarted
             binding.tvFoldUnstarted.alpha = if (foldUnstarted) 0.4f else 1f
+        }
+        observeEvent<Boolean>(EventBus.MATERIALS_CHANGED) {
+            refreshMaterialsBadge()
         }
         loadBreakdown()
     }
@@ -87,7 +94,31 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
                     bookChapters.value = viewModel.getChapterList(bd.bookUrl)
                 }
             }
+            attachFloatingWindow(bd)
+            refreshMaterialsBadge()
             observeChapters()
+        }
+    }
+
+    private fun attachFloatingWindow(bd: BookBreakdown) {
+        if (floatingWindow != null) return
+        if (bd.bookUrl.isBlank()) return
+        floatingWindow = BreakdownFloatingWindow(
+            activity = this,
+            lifecycle = lifecycle,
+            initialBookUrl = bd.bookUrl
+        ).also { it.attach() }
+    }
+
+    private fun refreshMaterialsBadge() {
+        val bd = breakdown ?: return
+        lifecycleScope.launch {
+            val count = withContext(IO) {
+                appDb.materialDao.getActive()
+                    .count { it.bookName == bd.bookName && it.bookAuthor == bd.bookAuthor }
+            }
+            binding.titleBar.subtitle =
+                getString(R.string.breakdown_floating_materials_badge, count)
         }
     }
 
@@ -100,6 +131,19 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
         binding.tvTitleFormula.visibility = if (bd.titleFormula.isBlank()) View.GONE else View.VISIBLE
         binding.tvOverallNote.text = bd.overallNote
         binding.tvOverallNote.visibility = if (bd.overallNote.isBlank()) View.GONE else View.VISIBLE
+        // Skill 绑定展示 + 点击切换(修复"建档案后只能默认模板"缺陷)
+        lifecycleScope.launch(IO) {
+            val s = io.legado.app.help.ai.AiAgentHelper.resolveBreakdownSkill(bd.skillId)
+            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                binding.cardSkillRow.visibility = View.VISIBLE
+                binding.tvSkillName.text = buildString {
+                    append(s.name)
+                    append(if (s.readOnly) " (内置/只读)" else " (自定义)")
+                    if (bd.skillId == 0L) append(" · 默认回退")
+                }
+                binding.cardSkillRow.setOnClickListener { pickSkillFor(bd) }
+            }
+        }
         binding.flexBenchmarks.removeAllViews()
         bd.benchmarks.forEach { benchmark ->
             val pill = io.legado.app.ui.book.material.MaterialTagViews.newPill(
@@ -110,6 +154,44 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, 0, 8.dpToPx(), 6.dpToPx()) }
             binding.flexBenchmarks.addView(pill)
+        }
+    }
+
+    /** 档案绑定 skill 选择器(修复"建档案后只默认模板"缺陷) */
+    private fun pickSkillFor(bd: BookBreakdown) {
+        lifecycleScope.launch(IO) {
+            val list = appDb.aiAgentSkillDao.all.filter { s ->
+                s.category == io.legado.app.data.entities.AiAgentSkill.BREAKDOWN && s.enabled
+            }
+            if (list.isEmpty()) {
+                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    toastOnUi("暂无可用拆书 Skill,请先在 Skill 管理页导入旧模板或新建")
+                }
+                return@launch
+            }
+            val labels = list.map { s ->
+                buildString {
+                    append(s.name)
+                    if (s.readOnly) append(" (内置)")
+                    if (s.id == bd.skillId) append(" ✔")
+                }
+            } + listOf("使用系统默认拆书 Skill(回退)")
+            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                selector("绑定 Skill/拆书模板", labels) { _, _, i ->
+                    lifecycleScope.launch(IO) {
+                        val newSkillId = when {
+                            i < list.size -> list[i].id
+                            else -> 0L
+                        }
+                        appDb.bookBreakdownDao.update(bd.copy(skillId = newSkillId, updateTime = System.currentTimeMillis()))
+                        breakdown = appDb.bookBreakdownDao.get(bd.id)
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            toastOnUi("已切换 Skill")
+                            breakdown?.let { b -> upInfoCard(b) }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -216,7 +298,7 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
             // 范围选择:全部章节
             selector(
                 getString(R.string.breakdown_ai_batch_scope),
-                listOf(getString(R.string.breakdown_ai_batch_unfinished))
+                listOf<String>(getString(R.string.breakdown_ai_batch_unfinished))
             ) { _, _, index ->
                 if (index == 0) {
                     runAiBatchAll(unfinished.map { it.index })
@@ -226,26 +308,46 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
     }
 
     private fun runAiBatchAll(chapterIndexes: List<Int>) {
-        val target = chapterIndexes
-            .filter { it >= 0 }
+        val target = chapterIndexes.filter { it >= 0 }
         if (target.isEmpty()) {
             toastOnUi(R.string.breakdown_export_none)
             return
         }
+        val bd = breakdown ?: return
         toastOnUi(getString(R.string.breakdown_ai_batch_confirm, target.size))
         lifecycleScope.launch {
-            var okCount = 0
-            var failCount = 0
-            var finished = 0
-            for (index in target) {
-                finished++
-                toastOnUi(getString(R.string.breakdown_ai_batch_running, finished, target.size))
-                val err = withContext(IO) {
-                    BreakdownHelper.aiBreakdownChapter(breakdownId, index)
+            val (pairs, numberedContents) = withContext(IO) {
+                val chapters = bookChapters.value.filter { it.index in target }
+                val pairsInternal = chapters.map { it.index to it.title }
+                val bk = appDb.bookDao.getBook(bd.bookName, bd.bookAuthor)
+                val numbered = mutableMapOf<Int, String>()
+                chapters.forEach { ch ->
+                    val text = if (bk != null) {
+                        runCatching { io.legado.app.help.book.BookHelp.getContent(bk, ch) }.getOrNull()
+                    } else null
+                    if (!text.isNullOrBlank()) {
+                        numbered[ch.index] = BreakdownHelper.buildNumberedContent(text)
+                    }
                 }
-                if (err == null) okCount++ else failCount++
+                pairsInternal to numbered
             }
-            toastOnUi(getString(R.string.breakdown_ai_batch_done, okCount, failCount))
+            if (pairs.isEmpty()) {
+                toastOnUi("所有章节内容均未缓存,请先在阅读页浏览一遍")
+                return@launch
+            }
+            val convId = io.legado.app.help.ai.AiAgentRunner.startBreakdownTask(
+                scope = lifecycleScope,
+                bd = bd,
+                chaptersToRun = pairs,
+                numberedContents = numberedContents,
+                skill = io.legado.app.help.ai.AiAgentHelper.resolveBreakdownSkill(bd.skillId)
+            )
+            toastOnUi("已发起批量拆解,跳转 AI Agent 辅助页查看流式进度")
+            val intent = android.content.Intent(
+                this@BookBreakdownActivity,
+                io.legado.app.ui.book.breakdown.ai.AiAgentActivity::class.java
+            ).apply { putExtra("convId", convId) }
+            startActivity(intent)
             BreakdownHelper.notifyChanged()
         }
     }

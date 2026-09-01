@@ -41,5 +41,11 @@ object EventBus {
     const val MATERIALS_CHANGED = "materialsChanged"
     const val BREAKDOWNS_CHANGED = "breakdownsChanged"
     const val BREAKDOWN_AI_PROGRESS = "breakdownAiProgress"
+    /** AI Agent 会话消息流新增/流式增量/状态变更(convId:Long payload),对话页用来滚动刷新 */
+    const val AI_AGENT_MSG_UPDATED = "aiAgentMsgUpdated"
+    /** AI Agent 新建/删除/切换会话(convId:Long or -1 代表刷新侧栏列表) */
+    const val AI_AGENT_CONV_CHANGED = "aiAgentConvChanged"
+    /** Skill 变动(增删改)时通知 Skill 列表与拆书档案页绑定选择器刷新 */
+    const val AI_AGENT_SKILL_CHANGED = "aiAgentSkillChanged"
     const val UP_VIDEO_INFO = "upVideoInfo"
 }

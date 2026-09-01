@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppLog
+import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookBreakdown
@@ -19,6 +20,8 @@ import io.legado.app.data.entities.BreakdownChapter
 import io.legado.app.data.entities.BreakdownSegment
 import io.legado.app.databinding.ActivityChapterBreakdownBinding
 import io.legado.app.help.breakdown.BreakdownHelper
+import io.legado.app.help.breakdown.BreakdownFloatingWindow
+import io.legado.app.utils.observeEvent
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.primaryColor
@@ -59,6 +62,7 @@ class ChapterBreakdownActivity :
     }
     private var summaryInput: io.legado.app.lib.theme.view.ThemeEditText? = null
     private var summaryInited = false
+    private var floatingWindow: BreakdownFloatingWindow? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.rvSegments.setEdgeEffectColor(primaryColor)
@@ -67,6 +71,9 @@ class ChapterBreakdownActivity :
         binding.tvConfirmDraft.setOnClickListener { confirmDraft() }
         binding.tvAddSegment.setOnClickListener { addSegment() }
         setupSelectActionBar()
+        observeEvent<Boolean>(EventBus.MATERIALS_CHANGED) {
+            refreshMaterialsBadge()
+        }
         loadData()
     }
 
@@ -91,7 +98,31 @@ class ChapterBreakdownActivity :
             }
             binding.titleBar.title = ctx.third!!.chapterName
             upDraftBar(ctx.third!!)
+            attachFloatingWindow(ctx.first!!, ctx.second!!)
+            refreshMaterialsBadge()
             observeSegments(ctx.third!!.id)
+        }
+    }
+
+    private fun attachFloatingWindow(bd: BookBreakdown, bk: Book) {
+        if (floatingWindow != null) return
+        floatingWindow = BreakdownFloatingWindow(
+            activity = this,
+            lifecycle = lifecycle,
+            initialBookUrl = bk.bookUrl,
+            initialChapterIndex = chapterIndex
+        ).also { it.attach() }
+    }
+
+    private fun refreshMaterialsBadge() {
+        val bd = breakdown ?: return
+        lifecycleScope.launch {
+            val count = withContext(IO) {
+                appDb.materialDao.getActive()
+                    .count { it.bookName == bd.bookName && it.bookAuthor == bd.bookAuthor }
+            }
+            binding.titleBar.subtitle =
+                getString(R.string.breakdown_floating_materials_badge, count)
         }
     }
 
@@ -451,20 +482,75 @@ class ChapterBreakdownActivity :
     }
 
     private fun runAiChapter() {
-        binding.tvAddSegment.isEnabled = false
-        toastOnUi(getString(R.string.breakdown_ai_batch_running, 1, 1))
-        lifecycleScope.launch {
-            val err = withContext(IO) {
-                BreakdownHelper.aiBreakdownChapter(breakdownId, chapterIndex)
-            }
+        val bd = breakdown ?: run {
             binding.tvAddSegment.isEnabled = true
-            if (err == null) {
-                toastOnUi(R.string.breakdown_ai_done)
-            } else {
-                toastOnUi(getString(R.string.breakdown_ai_fail, err))
+            return
+        }
+        val bookLocal = book
+        lifecycleScope.launch {
+            val (chaptersToRun, numberedContents) = withContext(IO) {
+                val ch = bookChaptersForBreakdown(bookLocal, bd, listOf(chapterIndex))
+                buildNumberedMap(bd, ch)
             }
+            if (chaptersToRun.isEmpty()) {
+                toastOnUi("没有可用章节")
+                binding.tvAddSegment.isEnabled = true
+                return@launch
+            }
+            val convId = io.legado.app.help.ai.AiAgentRunner.startBreakdownTask(
+                scope = lifecycleScope,
+                bd = bd,
+                chaptersToRun = chaptersToRun,
+                numberedContents = numberedContents,
+                skill = io.legado.app.help.ai.AiAgentHelper.resolveBreakdownSkill(bd.skillId)
+            )
+            toastOnUi("已发起 AI 拆解,在 AI Agent 辅助页实时查看进度")
+            // 立即打开 AI Agent 辅助页展示流式过程
+            val intent = android.content.Intent(
+                this@ChapterBreakdownActivity,
+                io.legado.app.ui.book.breakdown.ai.AiAgentActivity::class.java
+            ).apply { putExtra("convId", convId) }
+            startActivity(intent)
+            binding.tvAddSegment.isEnabled = true
             BreakdownHelper.notifyChanged()
             loadData()
         }
+    }
+
+    /* ------------------------------ 辅助:构造拆书 Runner 需要的 (章节→预编号文本) ------------------------------ */
+
+    private suspend fun bookChaptersForBreakdown(
+        bk: Book?,
+        bd: BookBreakdown,
+        indices: List<Int>
+    ): List<BookChapter> {
+        val chapters = if (bk != null) {
+            appDb.bookChapterDao.getChapterList(bk.bookUrl)
+        } else {
+            // 缺 bookUrl 时退回根据 bd.bookName/author 回查的 book
+            val b = appDb.bookDao.getBook(bd.bookName, bd.bookAuthor)
+                ?: return emptyList()
+            appDb.bookChapterDao.getChapterList(b.bookUrl)
+        }
+        return chapters.filter { it.index in indices }
+    }
+
+    private suspend fun buildNumberedMap(
+        bd: BookBreakdown,
+        chapters: List<BookChapter>
+    ): Pair<List<Pair<Int, String>>, Map<Int, String>> {
+        val pairs = mutableListOf<Pair<Int, String>>()
+        val map = mutableMapOf<Int, String>()
+        val bk = appDb.bookDao.getBook(bd.bookName, bd.bookAuthor)
+        chapters.forEach { ch ->
+            pairs += ch.index to ch.title
+            val text = if (bk != null) {
+                runCatching { io.legado.app.help.book.BookHelp.getContent(bk, ch) }.getOrNull()
+            } else null
+            if (!text.isNullOrBlank()) {
+                map[ch.index] = BreakdownHelper.buildNumberedContent(text)
+            }
+        }
+        return pairs to map
     }
 }

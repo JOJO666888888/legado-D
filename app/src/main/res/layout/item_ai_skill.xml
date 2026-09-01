@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBody1"
+        android:textStyle="bold"
+        tools:text="青山式拆解"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/iv_builtin_badge"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_builtin_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="6dp"
+        android:src="@drawable/ic_star"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/tv_name"
+        app:layout_constraintEnd_toStartOf="@id/tv_category"
+        app:layout_constraintTop_toTopOf="@id/tv_name"
+        app:layout_constraintBottom_toBottomOf="@id/tv_name"
+        app:tint="@color/md_amber_500" />
+
+    <TextView
+        android:id="@+id/tv_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_tag_default"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp"
+        android:textSize="11sp"
+        android:textColor="@color/md_white_1000"
+        tools:text="拆书"
+        app:layout_constraintStart_toEndOf="@id/iv_builtin_badge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_name"
+        app:layout_constraintBottom_toBottomOf="@id/tv_name" />
+
+    <TextView
+        android:id="@+id/tv_vocab"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="@color/secondaryText"
+        android:textSize="12sp"
+        tools:text="词汇表:12 条"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/sw_enabled"
+        app:layout_constraintTop_toBottomOf="@id/tv_name" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/sw_enabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@null"
+        app:layout_constraintEnd_toStartOf="@id/btn_duplicate"
+        app:layout_constraintTop_toTopOf="@id/tv_vocab"
+        app:layout_constraintBottom_toBottomOf="@id/tv_vocab" />
+
+    <ImageButton
+        android:id="@+id/btn_duplicate"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null"
+        app:srcCompat="@drawable/ic_copy"
+        app:tint="?android:attr/textColorSecondary"
+        app:layout_constraintEnd_toStartOf="@id/btn_delete"
+        app:layout_constraintTop_toTopOf="@id/sw_enabled"
+        app:layout_constraintBottom_toBottomOf="@id/sw_enabled" />
+
+    <ImageButton
+        android:id="@+id/btn_delete"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null"
+        app:srcCompat="@drawable/ic_outline_delete"
+        app:tint="@color/md_red_500"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/sw_enabled"
+        app:layout_constraintBottom_toBottomOf="@id/sw_enabled" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
