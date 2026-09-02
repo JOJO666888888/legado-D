@@ -104,6 +104,7 @@
                 android:id="@+id/tv_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#FF000000"
                 android:textSize="15sp"
                 android:lineSpacingExtra="4dp"
                 android:textIsSelectable="true"

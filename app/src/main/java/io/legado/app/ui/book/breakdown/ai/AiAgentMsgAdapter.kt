@@ -49,6 +49,8 @@ class AiAgentMsgAdapter(
     private val secondaryText = context.secondaryTextColor
     private val accent = context.accentColor
     private val dangerText = context.getCompatColor(R.color.md_red_700)
+    /** 用户/AI 正文文字:固定黑色,与浅色卡片背景形成明显对比(不随主题灰化) */
+    private val textBlack = android.graphics.Color.BLACK
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
         VH(ItemAiAgentMsgBinding.inflate(inflater, parent, false))
@@ -121,15 +123,16 @@ class AiAgentMsgAdapter(
                 b.tvTag.visibility = View.GONE
             }
 
-            /* 正文层级排版 */
-            b.tvContent.text = when {
+            val text = when {
                 m.content.isBlank() && m.status == AiAgentMsg.STATUS_STREAMING ->
                     SpannableStringBuilder("▌").also {
-                        b.tvContent.setTextColor(secondaryText)
+                        b.tvContent.setTextColor(textBlack)
                     }
                 isUser -> m.content
                 else -> AiMsgTextFormatter.format(m.content, codeBgColor)
             }
+            b.tvContent.text = text
+            /* 正文层级排版:AI 格式化(标题/列表/代码),用户原样;文字颜色由卡片分支与 XML 共同固定为黑色 */
 
             b.btnCopy.setOnClickListener { callBack.onMsgCopy(m) }
             b.btnDelete.setOnClickListener { callBack.onMsgDelete(m) }
