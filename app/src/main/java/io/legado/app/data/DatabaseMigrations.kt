@@ -446,7 +446,7 @@ object DatabaseMigrations {
             db.execSQL("ALTER TABLE aiAgentMsgs ADD COLUMN toolCallsJson TEXT NOT NULL DEFAULT '[]'")
             db.execSQL(
                 """CREATE TABLE IF NOT EXISTS aiChatChunks(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     bookId INTEGER NOT NULL,
                     chapterIndex INTEGER NOT NULL,
                     charStart INTEGER NOT NULL,
