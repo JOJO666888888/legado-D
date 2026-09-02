@@ -15,6 +15,11 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_export_conv"
+        android:title="@string/ai_agent_export_conv"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_clear_conv"
         android:title="@string/ai_agent_clear_conv"
         app:showAsAction="never" />

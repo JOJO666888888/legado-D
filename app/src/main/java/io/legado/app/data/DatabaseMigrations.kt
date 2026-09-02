@@ -20,6 +20,7 @@ object DatabaseMigrations {
             migration_31_32, migration_32_33, migration_33_34, migration_34_35,
             migration_35_36, migration_36_37, migration_37_38, migration_38_39,
             migration_39_40, migration_40_41, migration_41_42, migration_42_43,
+            migration_92_93,
         )
     }
 
@@ -428,6 +429,37 @@ object DatabaseMigrations {
     class Migration_91_92 : AutoMigrationSpec {
         override fun onPostMigrate(db: SupportSQLiteDatabase) {
             io.legado.app.help.ai.AiAgentTemplateMigrator.migrateLegacyTemplates(db)
+        }
+    }
+
+    /**
+     * v92→v93:AI Agent 一期增强(thinking / 工具轮 / 前情提要 / 向量索引)。
+     * 必须手写 SQL 而非 AutoMigration——新列全部 NON-NULL 带默认值,
+     * AutoMigration 无法推断 Kotlin 默认值对应的 DB DEFAULT,集合中间态迁移会失败。
+     */
+    private val migration_92_93 = object : Migration(92, 93) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE aiAgentConvs ADD COLUMN rollingSummary TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE aiAgentConvs ADD COLUMN summarizedThroughMessageId INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE aiAgentMsgs ADD COLUMN thinking TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE aiAgentMsgs ADD COLUMN toolCallId TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE aiAgentMsgs ADD COLUMN toolCallsJson TEXT NOT NULL DEFAULT '[]'")
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS aiChatChunks(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    bookId INTEGER NOT NULL,
+                    chapterIndex INTEGER NOT NULL,
+                    charStart INTEGER NOT NULL,
+                    charEnd INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    vector BLOB NOT NULL,
+                    textVersion INTEGER NOT NULL,
+                    createTime INTEGER NOT NULL
+                )"""
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_aiChatChunks_bookId_chapterIndex ON aiChatChunks(bookId, chapterIndex)"
+            )
         }
     }
 

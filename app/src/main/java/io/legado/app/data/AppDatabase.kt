@@ -21,6 +21,7 @@ import io.legado.app.data.dao.BreakdownTemplateDao
 import io.legado.app.data.dao.AiAgentSkillDao
 import io.legado.app.data.dao.AiAgentConvDao
 import io.legado.app.data.dao.AiAgentMsgDao
+import io.legado.app.data.dao.AiChatChunkDao
 import io.legado.app.data.dao.CacheDao
 import io.legado.app.data.dao.CookieDao
 import io.legado.app.data.dao.DictRuleDao
@@ -51,6 +52,7 @@ import io.legado.app.data.entities.BreakdownTemplate
 import io.legado.app.data.entities.AiAgentSkill
 import io.legado.app.data.entities.AiAgentConv
 import io.legado.app.data.entities.AiAgentMsg
+import io.legado.app.data.entities.AiChatChunk
 import io.legado.app.data.entities.Cache
 import io.legado.app.data.entities.Cookie
 import io.legado.app.data.entities.DictRule
@@ -84,7 +86,7 @@ val appDb by lazy {
 }
 
 @Database(
-    version = 92,
+    version = 93,
     exportSchema = true,
     entities = [Book::class, BookGroup::class, BookSource::class, BookChapter::class,
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
@@ -93,7 +95,8 @@ val appDb by lazy {
         RuleSub::class, DictRule::class, KeyboardAssist::class, Server::class,
         Material::class, BreakdownTemplate::class, BookBreakdown::class,
         BreakdownChapter::class, BreakdownSegment::class,
-        AiAgentSkill::class, AiAgentConv::class, AiAgentMsg::class],
+        AiAgentSkill::class, AiAgentConv::class, AiAgentMsg::class,
+        AiChatChunk::class],
     views = [BookSourcePart::class],
     autoMigrations = [
         AutoMigration(from = 43, to = 44),
@@ -178,6 +181,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val aiAgentSkillDao: AiAgentSkillDao
     abstract val aiAgentConvDao: AiAgentConvDao
     abstract val aiAgentMsgDao: AiAgentMsgDao
+    abstract val aiChatChunkDao: AiChatChunkDao
 
     companion object {
 

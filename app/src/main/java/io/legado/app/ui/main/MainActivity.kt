@@ -2,6 +2,7 @@
 
 package io.legado.app.ui.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.MenuItem
@@ -45,6 +46,7 @@ import io.legado.app.ui.main.explore.ExploreFragment
 import io.legado.app.ui.main.material.MaterialLibraryFragment
 import io.legado.app.ui.main.my.MyFragment
 import io.legado.app.ui.main.rss.RssFragment
+import io.legado.app.ui.book.breakdown.ai.AiAgentFragment
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.ui.widget.text.BadgeView
 import io.legado.app.utils.isCreated
@@ -53,6 +55,7 @@ import io.legado.app.utils.observeEvent
 import io.legado.app.utils.setEdgeEffectColor
 import io.legado.app.utils.setOnApplyWindowInsetsListenerCompat
 import io.legado.app.utils.showDialogFragment
+import io.legado.app.utils.startActivity
 import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
@@ -89,6 +92,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private val idExplore = 2
     private val idRss = 3
     private val idMy = 4
+    private val idAiAgent = 5
     private var exitTime: Long = 0
     private var bookshelfReselected: Long = 0
     private var exploreReselected: Long = 0
@@ -96,7 +100,8 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private val fragmentMap = hashMapOf<Int, Fragment>()
     private var bottomMenuCount = 4
     private val EXIT_INTERVAL = 2000L
-    private val realPositions = arrayOf(idBookshelf, idMaterial, idExplore, idRss, idMy)
+    private var realPositions = intArrayOf(idBookshelf, idMaterial, idExplore, idRss, idMy, idAiAgent)
+    private var pendingAiAgentConvId = -1L
     private val adapter by lazy {
         TabFragmentPageAdapter(supportFragmentManager)
     }
@@ -106,6 +111,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         upBottomMenu()
         initView()
         upHomePage()
+        handleAiAgentIntent(intent)
         onBackPressedDispatcher.addCallback(this) {
             if (pagePosition != 0) {
                 binding.viewPagerMain.currentItem = 0
@@ -177,6 +183,9 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
 
             R.id.menu_my_config ->
                 viewPagerMain.setCurrentItem(realPositions.indexOf(idMy), false)
+
+            R.id.menu_ai_agent ->
+                viewPagerMain.setCurrentItem(realPositions.indexOf(idAiAgent), false)
         }
         return false
     }
@@ -386,7 +395,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                 }
                 upBottomMenu()
                 if (it) {
-                    viewPagerMain.setCurrentItem(bottomMenuCount - 1, false)
+                    viewPagerMain.setCurrentItem(realPositions.indexOf(idMy), false)
                 }
             }
         }
@@ -399,10 +408,12 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         val showMaterial = AppConfig.showMaterialTab
         val showDiscovery = AppConfig.showDiscovery
         val showRss = AppConfig.showRSS
+        val showAiAgent = AppConfig.showAiAgentTab
         binding.bottomNavigationView.menu.let { menu ->
             menu.findItem(R.id.menu_material).isVisible = showMaterial
             menu.findItem(R.id.menu_discovery).isVisible = showDiscovery
             menu.findItem(R.id.menu_rss).isVisible = showRss
+            menu.findItem(R.id.menu_ai_agent).isVisible = showAiAgent
         }
         var index = 0
         realPositions[index] = idBookshelf
@@ -420,7 +431,13 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         }
         index++
         realPositions[index] = idMy
+        if (showAiAgent) {
+            index++
+            realPositions[index] = idAiAgent
+        }
         bottomMenuCount = index + 1
+        // 全量缓存各 Tab,保证来回切换不重建、会话与任务进度不丢
+        binding.viewPagerMain.offscreenPageLimit = (bottomMenuCount - 1).coerceAtLeast(0)
         adapter.notifyDataSetChanged()
     }
 
@@ -447,11 +464,47 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         return id
     }
 
+    /**
+     * 拆书联动入口:定位到 AI Agent Tab 并展示指定会话。
+     * 兼容三种来源:冷启动 intent / singleTask onNewIntent / Tab 隐藏时降级独立页。
+     */
+    private fun handleAiAgentIntent(intent: Intent?) {
+        val convId = intent?.getLongExtra("aiAgentConvId", -1L) ?: -1L
+        if (convId <= 0) return
+        val position = realPositions.indexOf(idAiAgent)
+        if (position < 0) {
+            // AI Agent Tab 已在设置中隐藏,降级打开独立会话页
+            startActivity<io.legado.app.ui.book.breakdown.ai.AiAgentActivity> {
+                putExtra("convId", convId)
+            }
+            return
+        }
+        pendingAiAgentConvId = convId
+        binding.viewPagerMain.currentItem = position
+        binding.viewPagerMain.post { deliverPendingAiAgentConv() }
+    }
+
+    private fun deliverPendingAiAgentConv() {
+        if (pendingAiAgentConvId <= 0) return
+        (fragmentMap[idAiAgent] as? AiAgentFragment)?.let { fragment ->
+            fragment.openConv(pendingAiAgentConvId)
+            pendingAiAgentConvId = -1L
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleAiAgentIntent(intent)
+    }
+
     private inner class PageChangeCallback : ViewPager.SimpleOnPageChangeListener() {
 
         override fun onPageSelected(position: Int) {
             pagePosition = position
             binding.bottomNavigationView.menu[realPositions[position]].isChecked = true
+            if (realPositions[position] == idAiAgent) {
+                binding.viewPagerMain.post { deliverPendingAiAgentConv() }
+            }
         }
 
     }
@@ -474,6 +527,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                 || (fragmentId == idExplore && any is ExploreFragment)
                 || (fragmentId == idRss && any is RssFragment)
                 || (fragmentId == idMy && any is MyFragment)
+                || (fragmentId == idAiAgent && any is AiAgentFragment)
             ) {
                 return POSITION_UNCHANGED
             }
@@ -487,6 +541,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                 idMaterial -> MaterialLibraryFragment(position)
                 idExplore -> ExploreFragment(position)
                 idRss -> RssFragment(position)
+                idAiAgent -> AiAgentFragment(position)
                 else -> MyFragment(position)
             }
         }

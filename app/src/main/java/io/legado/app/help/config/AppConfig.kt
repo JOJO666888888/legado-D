@@ -297,6 +297,9 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
     val showMaterialTab: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.showMaterialTab, true)
 
+    val showAiAgentTab: Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.showAiAgentTab, true)
+
     // -------------------- AI 拆书配置(仅存私有 Preferences,不入备份) --------------------
 
     var aiBaseUrl: String
@@ -316,6 +319,53 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         get() = appCtx.getPrefString(PreferKey.aiModel, "gpt-4o-mini").orEmpty()
         set(value) {
             appCtx.putPrefString(PreferKey.aiModel, value)
+        }
+
+    // -------------------- 角色化模型配置(未配置时回退主配置,零配置兼容) --------------------
+
+    /** 便宜模型(记忆/前情提要):未配置回退主配置 */
+    var aiCheapBaseUrl: String
+        get() = appCtx.getPrefString(PreferKey.aiCheapBaseUrl).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiCheapBaseUrl, value)
+        }
+
+    var aiCheapApiKey: String
+        get() = appCtx.getPrefString(PreferKey.aiCheapApiKey).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiCheapApiKey, value)
+        }
+
+    var aiCheapModel: String
+        get() = appCtx.getPrefString(PreferKey.aiCheapModel).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiCheapModel, value)
+        }
+
+    /** 向量模型(语义索引):未配置时按 D6 不建索引且不报错 */
+    var aiEmbeddingBaseUrl: String
+        get() = appCtx.getPrefString(PreferKey.aiEmbeddingBaseUrl).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiEmbeddingBaseUrl, value)
+        }
+
+    var aiEmbeddingApiKey: String
+        get() = appCtx.getPrefString(PreferKey.aiEmbeddingApiKey).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiEmbeddingApiKey, value)
+        }
+
+    var aiEmbeddingModel: String
+        get() = appCtx.getPrefString(PreferKey.aiEmbeddingModel).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiEmbeddingModel, value)
+        }
+
+    /** 接口方言:openai(默认) / claude(Anthropic Messages 最小差异) */
+    var aiDialect: String
+        get() = appCtx.getPrefString(PreferKey.aiDialect, "openai").orEmpty().ifBlank { "openai" }
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiDialect, value.ifBlank { "openai" })
         }
 
     // 单章最大发送字数(超长截断并提示)

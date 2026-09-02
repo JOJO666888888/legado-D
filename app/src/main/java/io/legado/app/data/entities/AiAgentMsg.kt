@@ -41,6 +41,12 @@ data class AiAgentMsg(
     var role: String = ROLE_USER,
     /** 正文(流式阶段持续拼接, 最终完整版) */
     var content: String = "",
+    /** assistant 思考段(thinking/reasoning_content 增量拼合),展示时折叠 */
+    var thinking: String = "",
+    /** role=tool 时关联的 assistant tool_calls id(OpenAI tool_call_id) */
+    var toolCallId: String = "",
+    /** assistant 工具声明 JSON 数组(OpenAI tool_calls 结构原样落库,空数组表示无工具轮) */
+    var toolCallsJson: String = "[]",
     /** 消息在当前会话内展示的类别:MESSAGE / CONTEXT_INJECT / BREAKDOWN_TASK / BREAKDOWN_RESULT / ERROR_BANNER */
     var kind: String = KIND_MESSAGE,
     /** 状态:STREAMING/DONE/CANCELLED/PARSING(仅消息表,不做全局 state 双写) */

@@ -42,6 +42,15 @@ class AiConfigActivity : VMBaseActivity<ActivityAiConfigBinding, AiConfigViewMod
         binding.editApiKey.setText(AppConfig.aiApiKey)
         binding.editModel.setText(AppConfig.aiModel)
         binding.editMaxSend.setText(AppConfig.aiMaxSendChars.toString())
+        // 角色化模型配置(未配置留空=回退主配置)
+        binding.editCheapBaseUrl.setText(AppConfig.aiCheapBaseUrl)
+        binding.editCheapApiKey.setText(AppConfig.aiCheapApiKey)
+        binding.editCheapModel.setText(AppConfig.aiCheapModel)
+        binding.editEmbeddingBaseUrl.setText(AppConfig.aiEmbeddingBaseUrl)
+        binding.editEmbeddingApiKey.setText(AppConfig.aiEmbeddingApiKey)
+        binding.editEmbeddingModel.setText(AppConfig.aiEmbeddingModel)
+        // 接口方言:openai(默认) / claude
+        binding.editDialect.setText(AppConfig.aiDialect)
         // 绑定测试按钮
         binding.tvTest.setOnClickListener { testConnection() }
     }
@@ -57,6 +66,14 @@ class AiConfigActivity : VMBaseActivity<ActivityAiConfigBinding, AiConfigViewMod
         AppConfig.aiApiKey = apiKey
         AppConfig.aiModel = model
         AppConfig.aiMaxSendChars = maxSend
+        AppConfig.aiCheapBaseUrl = binding.editCheapBaseUrl.text?.toString()?.trim().orEmpty()
+        AppConfig.aiCheapApiKey = binding.editCheapApiKey.text?.toString()?.trim().orEmpty()
+        AppConfig.aiCheapModel = binding.editCheapModel.text?.toString()?.trim().orEmpty()
+        AppConfig.aiEmbeddingBaseUrl = binding.editEmbeddingBaseUrl.text?.toString()?.trim().orEmpty()
+        AppConfig.aiEmbeddingApiKey = binding.editEmbeddingApiKey.text?.toString()?.trim().orEmpty()
+        AppConfig.aiEmbeddingModel = binding.editEmbeddingModel.text?.toString()?.trim().orEmpty()
+        val dialect = binding.editDialect.text?.toString()?.trim().orEmpty()
+        AppConfig.aiDialect = if (dialect == "claude") "claude" else "openai"
     }
 
     private fun testConnection() {

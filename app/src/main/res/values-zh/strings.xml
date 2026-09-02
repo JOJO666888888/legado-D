@@ -1308,6 +1308,8 @@
     <string name="material_batch_tag">给所选打标签</string>
     <string name="material_batch_done">操作完成：%1$d 项</string>
     <string name="show_material_tab">显示素材库入口</string>
+    <string name="show_ai_agent_tab">显示 AI Agent 入口</string>
+    <string name="main_ai_agent">AI Agent</string>
     <string name="material_mark_style">素材划线样式</string>
     <string name="material_mark_underline">下划线</string>
     <string name="material_mark_background">背景色</string>
@@ -1479,4 +1481,19 @@
     <string name="ai_agent_conv_kind_breakdown">拆书任务</string>
     <string name="ai_agent_conv_kind_task">其他任务</string>
     <string name="ai_agent_conv_new_hint">新对话</string>
+    <string name="ai_agent_welcome_title">开始与 AI 对话</string>
+    <string name="ai_agent_welcome_hint">拆书、问答、任务执行,从一句话开始</string>
+    <string name="ai_agent_pick_skill">选择技能</string>
+    <string name="ai_agent_today">今天</string>
+    <string name="ai_agent_earlier">更早</string>
+    <string name="ai_agent_tag_inject">上下文注入</string>
+    <string name="ai_agent_tag_error">出错了</string>
+    <string name="ai_agent_status_streaming">AI 推理中…</string>
+    <string name="ai_agent_status_parsing">解析结果中…</string>
+    <string name="ai_agent_status_streaming_short">生成中</string>
+    <string name="ai_agent_status_parsing_short">解析中</string>
+    <string name="ai_agent_status_written">已写入章节草稿</string>
+    <string name="ai_agent_status_not_written">解析完成但未写回草稿</string>
+    <string name="ai_agent_status_stopped">已停止生成,不写入半成品数据</string>
+    <string name="ai_agent_delete_conv_confirm">删除该会话?聊天记录将一并删除。</string>
 </resources>

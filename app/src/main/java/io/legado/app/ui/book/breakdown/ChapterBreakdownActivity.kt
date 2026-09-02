@@ -504,12 +504,18 @@ class ChapterBreakdownActivity :
                 numberedContents = numberedContents,
                 skill = io.legado.app.help.ai.AiAgentHelper.resolveBreakdownSkill(bd.skillId)
             )
-            toastOnUi("已发起 AI 拆解,在 AI Agent 辅助页实时查看进度")
-            // 立即打开 AI Agent 辅助页展示流式过程
+            toastOnUi("已发起 AI 拆解,已切到 AI Agent 页实时查看进度")
+            // 切到主界面 AI Agent Tab 展示流式过程(Tab 隐藏时由 MainActivity 降级为独立页)
             val intent = android.content.Intent(
                 this@ChapterBreakdownActivity,
-                io.legado.app.ui.book.breakdown.ai.AiAgentActivity::class.java
-            ).apply { putExtra("convId", convId) }
+                io.legado.app.ui.main.MainActivity::class.java
+            ).apply {
+                putExtra("aiAgentConvId", convId)
+                addFlags(
+                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+            }
             startActivity(intent)
             binding.tvAddSegment.isEnabled = true
             BreakdownHelper.notifyChanged()

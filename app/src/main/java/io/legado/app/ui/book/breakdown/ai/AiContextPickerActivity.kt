@@ -2,12 +2,15 @@ package io.legado.app.ui.book.breakdown.ai
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.appDb
 import io.legado.app.databinding.ActivityAiContextPickerBinding
+import io.legado.app.help.ai.EmbeddingPipeline
 import io.legado.app.help.ai.ModelCapabilities
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.selector
@@ -37,7 +40,6 @@ class AiContextPickerActivity :
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.titleBar.setBackgroundColor(primaryColor)
         binding.titleBar.setTitle(R.string.ai_agent_context_pick_title)
-        // 预算提示
         val budget = ModelCapabilities.injectionCharsBudget(AppConfig.aiModel)
         binding.tvBudget.text = getString(R.string.ai_agent_context_budget_tip, budget)
         binding.btnPickBook.setOnClickListener { pickBook() }
@@ -136,5 +138,38 @@ class AiContextPickerActivity :
         }
         setResult(RESULT_OK, intent)
         finish()
+    }
+
+    /* ------------------------------ 语义索引(M9) ------------------------------ */
+
+    override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.ai_context_picker, menu)
+        return super.onCompatCreateOptionsMenu(menu)
+    }
+
+    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_build_semantic_index -> {
+                buildSemanticIndex()
+                return true
+            }
+        }
+        return super.onCompatOptionsItemSelected(item)
+    }
+
+    /** 建立当前所选书籍的整书语义索引(异步,进度 toast) */
+    private fun buildSemanticIndex() {
+        if (currentBookUrl.isBlank()) {
+            toastOnUi("请先在下方选择书籍")
+            return
+        }
+        val bookUrl = currentBookUrl
+        lifecycleScope.launch(Dispatchers.IO) {
+            val book = appDb.bookDao.getBook(bookUrl) ?: return@launch
+            val err = EmbeddingPipeline.embedBook(book) { _, _ -> }
+            withContext(Dispatchers.Main) {
+                toastOnUi(err ?: getString(R.string.ai_agent_index_done))
+            }
+        }
     }
 }

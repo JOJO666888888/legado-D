@@ -44,11 +44,22 @@ object PreferKey {
     const val enableReview = "enableReview"
     const val showRss = "showRss"
     const val showMaterialTab = "showMaterialTab"
+    const val showAiAgentTab = "showAiAgentTab"
     // AI 拆书配置(仅存私有 Preferences,不入备份)
     const val aiBaseUrl = "aiBaseUrl"
     const val aiApiKey = "aiApiKey"
     const val aiModel = "aiModel"
     const val aiMaxSendChars = "aiMaxSendChars"
+    /** 便宜模型(记忆/前情提要)角色配置;未配置时回退主配置 */
+    const val aiCheapBaseUrl = "aiCheapBaseUrl"
+    const val aiCheapApiKey = "aiCheapApiKey"
+    const val aiCheapModel = "aiCheapModel"
+    /** 向量模型(语义索引)角色配置;未配置时回退主配置 */
+    const val aiEmbeddingBaseUrl = "aiEmbeddingBaseUrl"
+    const val aiEmbeddingApiKey = "aiEmbeddingApiKey"
+    const val aiEmbeddingModel = "aiEmbeddingModel"
+    /** 接口方言:openai(默认) / claude(Anthropic Messages 最小差异) */
+    const val aiDialect = "aiDialect"
     /** 用户可覆盖:最大输出 Token 默认 64000;留空=按模型能力表。仅存 SharedPreferences,不入备份 */
     const val aiMaxOutputTokens = "aiMaxOutputTokens"
     /** 用户可覆盖:上下文窗口 Token(默认按模型能力表自动填, 留空=模型推断);API 配置 UI 暴露;仅存 SharedPreferences,不入备份 */

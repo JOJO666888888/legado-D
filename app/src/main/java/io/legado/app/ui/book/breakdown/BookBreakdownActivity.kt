@@ -342,11 +342,18 @@ class BookBreakdownActivity : VMBaseActivity<ActivityBookBreakdownBinding, BookB
                 numberedContents = numberedContents,
                 skill = io.legado.app.help.ai.AiAgentHelper.resolveBreakdownSkill(bd.skillId)
             )
-            toastOnUi("已发起批量拆解,跳转 AI Agent 辅助页查看流式进度")
+            toastOnUi("已发起批量拆解,已切到 AI Agent 页实时查看进度")
+            // 切到主界面 AI Agent Tab 展示流式过程(Tab 隐藏时由 MainActivity 降级为独立页)
             val intent = android.content.Intent(
                 this@BookBreakdownActivity,
-                io.legado.app.ui.book.breakdown.ai.AiAgentActivity::class.java
-            ).apply { putExtra("convId", convId) }
+                io.legado.app.ui.main.MainActivity::class.java
+            ).apply {
+                putExtra("aiAgentConvId", convId)
+                addFlags(
+                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                )
+            }
             startActivity(intent)
             BreakdownHelper.notifyChanged()
         }

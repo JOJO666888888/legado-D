@@ -38,6 +38,9 @@ interface AiAgentConvDao {
     @Query("update aiAgentConvs set state = :state, updateTime = :time where id = :id")
     fun setState(id: Long, state: Int, time: Long)
 
+    @Query("update aiAgentConvs set rollingSummary = :summary, summarizedThroughMessageId = :throughId, updateTime = :time where id = :id")
+    fun updateRollingSummary(id: Long, summary: String, throughId: Long, time: Long)
+
     @Query("update aiAgentConvs set lastError = :err, state = 0, updateTime = :time where id = :id")
     fun setError(id: Long, err: String, time: Long)
 

@@ -46,6 +46,10 @@ data class AiAgentConv(
     var state: Int = STATE_IDLE,
     /** 最近一次错误提示(空=正常) */
     var lastError: String = "",
+    /** 前情提要(rolling summary):AI 对历史的长篇压缩,注入 system 前缀,防止"聊到一半忘开头" */
+    var rollingSummary: String = "",
+    /** 前情提要水位:已纳入 summary 的最后一条消息 id(0=尚未生成) */
+    var summarizedThroughMessageId: Long = 0L,
     val createTime: Long = System.currentTimeMillis(),
     var updateTime: Long = System.currentTimeMillis()
 ) {

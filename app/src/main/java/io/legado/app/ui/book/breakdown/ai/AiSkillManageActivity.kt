@@ -2,6 +2,7 @@ package io.legado.app.ui.book.breakdown.ai
 
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,6 +13,7 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.AiAgentSkill
 import io.legado.app.databinding.ActivityAiSkillManageBinding
 import io.legado.app.help.ai.AiAgentHelper
+import io.legado.app.help.ai.SillyTavernCardParser
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.observeEvent
 import io.legado.app.utils.postEvent
@@ -36,6 +38,44 @@ class AiSkillManageActivity :
     override val viewModel by viewModels<AiSkillManageViewModel>()
 
     private val adapter: AiSkillAdapter by lazy { AiSkillAdapter(this, this) }
+
+    /** SAF 选择角色卡文件(.png/.json),自动识别 PNG 内嵌/裸 JSON */
+    private val importCardLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri == null) return@registerForActivityResult
+            lifecycleScope.launch(Dispatchers.IO) {
+                val bytes = kotlin.runCatching {
+                    contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                }.getOrNull() ?: run {
+                    withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_fail) }
+                    return@launch
+                }
+                val card = SillyTavernCardParser.parse(bytes)
+                if (card == null) {
+                    withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_fail) }
+                    return@launch
+                }
+                val now = System.currentTimeMillis()
+                val exists = appDb.aiAgentSkillDao.getByNameAndCategory(card.name, AiAgentSkill.AGENT_PERSONA)
+                val skill = AiAgentSkill(
+                    name = if (exists == null) card.name
+                    else "${card.name} ${getString(R.string.ai_skill_copy_suffix)}",
+                    category = AiAgentSkill.AGENT_PERSONA,
+                    systemPrompt = card.systemPrompt,
+                    toolDescriptions = "",
+                    readOnly = false,
+                    enabled = true,
+                    builtinId = "",
+                    config = card.configJson,
+                    migratedFromTemplateId = -1L,
+                    createTime = now,
+                    updateTime = now
+                )
+                appDb.aiAgentSkillDao.insert(skill)
+                postEvent(EventBus.AI_AGENT_SKILL_CHANGED, skill.id.toString())
+                withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_persona_ok) }
+            }
+        }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.titleBar.setBackgroundColor(primaryColor)
@@ -92,8 +132,8 @@ class AiSkillManageActivity :
 
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_import_skill -> toastOnUi("导入功能:请在 Activity 中接入 HandleFileContract 选 JSON 文件导入 Skill")
-            R.id.menu_export_skill -> toastOnUi("导出功能:请在 Activity 中接入 HandleFileContract 导出当前 Skill 列表")
+            R.id.menu_import_skill -> importCardLauncher.launch("*/*")
+            R.id.menu_export_skill -> toastOnUi("导出功能:请接入 HandleFileContract 导出当前 Skill 列表")
             R.id.menu_migrate_old_templates -> lifecycleScope.launch(Dispatchers.IO) {
                 io.legado.app.help.ai.AiAgentTemplateMigrator.ensureMigratedInOnOpen()
                 AiAgentHelper.ensureBuiltinBreakdownSkill()

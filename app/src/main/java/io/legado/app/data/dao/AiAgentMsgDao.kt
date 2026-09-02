@@ -33,6 +33,18 @@ interface AiAgentMsgDao {
     @Query("update aiAgentMsgs set content = content || :delta, updateTime = :time where id = :id")
     fun appendContent(id: Long, delta: String, time: Long)
 
+    /** 流式阶段:ASSISTANT thinking 增量追加(每 5 块 flush 一次 DB) */
+    @Query("update aiAgentMsgs set thinking = thinking || :delta, updateTime = :time where id = :id")
+    fun appendThinking(id: Long, delta: String, time: Long)
+
+    /** 工具调用完成:写入 toolCallsJson 与 toolCallId,将 status 置为 DONE(不再续写此 assistant 消息) */
+    @Query("update aiAgentMsgs set toolCallsJson = :callsJson, status = :status, updateTime = :time where id = :id")
+    fun setToolFields(id: Long, callsJson: String, status: Int, time: Long)
+
+    /** 流式收官:一次性写入完整 thinking(覆盖增量拼合的中间态) */
+    @Query("update aiAgentMsgs set thinking = :thinking, updateTime = :time where id = :id")
+    fun setThinking(id: Long, thinking: String, time: Long)
+
     @Query("update aiAgentMsgs set content = :content, status = :status, updateTime = :time, written = :written where id = :id")
     fun finalizeContent(id: Long, content: String, status: Int, written: Boolean, time: Long)
 

@@ -23,5 +23,9 @@
         android:id="@+id/menu_my_config"
         android:icon="@drawable/ic_bottom_person"
         android:title="@string/my" />
+    <item
+        android:id="@+id/menu_ai_agent"
+        android:icon="@drawable/ic_bottom_ai_agent"
+        android:title="@string/main_ai_agent" />
 
 </menu>

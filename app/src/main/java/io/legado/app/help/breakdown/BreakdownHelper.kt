@@ -272,7 +272,8 @@ object BreakdownHelper {
 
     /**
      * 引文锚点校验:AI 返回 [quote] 与 [startLine, endLine] 区间,比对原文;
-     * 不符则全文重定位并重算区间;仍失败返回 needCheck=true。
+     * 逐字失败/区间不符时走「乱宽定位」(M12 QuoteLocator:逐字全匹配多命中取最近 →
+     * 归一化匹配并把压缩下标映射回原文偏移),仍失败返回 needCheck=true。
      *
      * @return 修正后的区间,以及是否需人工核对
      */
@@ -294,12 +295,20 @@ object BreakdownHelper {
                 false
             )
         }
-        // 全文重定位(用原文 indexOf,容忍行间差异)
         val fullText = lines.joinToString("\n")
+        // 逐字全文重定位(用原文 indexOf,容忍行间差异)
         val idx = fullText.indexOf(quote)
         if (idx >= 0) {
             val newStart = posToLine(lines, idx)
             val newEnd = posToLine(lines, (idx + quote.length - 1).coerceAtLeast(0))
+            return Triple(newStart, newEnd, false)
+        }
+        // M12 宽松定位:精确失败后走归一化,把压缩下标映射回原文偏移再反算行号
+        val hintOffset = lineStartPos(lines, startLine)
+        val loc = QuoteLocator.locate(fullText, quote, hintOffset)
+        if (loc != null && loc.start >= 0 && loc.endExclusive > loc.start) {
+            val newStart = posToLine(lines, loc.start)
+            val newEnd = posToLine(lines, (loc.endExclusive - 1).coerceAtLeast(0))
             return Triple(newStart, newEnd, false)
         }
         return Triple(startLine, endLine, true)

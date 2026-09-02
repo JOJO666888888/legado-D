@@ -4,53 +4,108 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="10dp"
     android:paddingVertical="6dp">
 
     <ImageView
         android:id="@+id/iv_role"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:scaleType="fitCenter"
         android:contentDescription="@null"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/bubble_card" />
+        app:layout_constraintTop_toTopOf="@id/bubble_card"
+        tools:src="@drawable/ic_avatar_ai" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/bubble_card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginEnd="48dp"
-        app:cardCornerRadius="14dp"
-        app:cardElevation="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:layout_constrainedWidth="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toEndOf="@id/iv_role">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="6dp">
 
+            <!-- 工具/状态小标签:图标 + 文本,轻量卡片风格 -->
             <TextView
-                android:id="@+id/tv_banner"
-                android:layout_width="match_parent"
+                android:id="@+id/tv_tag"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:background="@drawable/bg_ai_tag"
+                android:drawableStart="@drawable/ic_code"
+                android:drawablePadding="4dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
                 android:visibility="gone"
                 tools:visibility="visible"
-                tools:text="🤖 AI 推理中(流式输出)" />
+                tools:text="拆书任务" />
+
+            <TextView
+                android:id="@+id/tv_thinking_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:background="?attr/selectableItemBackground"
+                android:drawableStart="@drawable/ic_code"
+                android:drawablePadding="4dp"
+                android:paddingHorizontal="2dp"
+                android:paddingVertical="2dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="已思考 · 查看 128 字" />
+
+            <TextView
+                android:id="@+id/tv_thinking_body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="@drawable/bg_ai_think"
+                android:textIsSelectable="true"
+                android:visibility="gone"
+                tools:text="思考过程内容" />
+
+            <TextView
+                android:id="@+id/tv_tool"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/bg_ai_tag"
+                android:drawablePadding="4dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textIsSelectable="true"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="✓ 调用工具「ReadBookSection」" />
 
             <TextView
                 android:id="@+id/tv_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14.5sp"
-                android:lineSpacingExtra="3dp"
+                android:textSize="15sp"
+                android:lineSpacingExtra="4dp"
                 android:textIsSelectable="true"
                 tools:text="内容内容内容\n第二段内容内容" />
 
@@ -58,27 +113,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="2dp"
                 android:gravity="end">
 
                 <ImageButton
                     android:id="@+id/btn_copy"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@null"
+                    android:scaleType="centerInside"
                     app:srcCompat="@drawable/ic_copy"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/secondaryText" />
 
                 <ImageButton
                     android:id="@+id/btn_delete"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:layout_marginStart="4dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@null"
+                    android:scaleType="centerInside"
                     app:srcCompat="@drawable/ic_outline_delete"
-                    app:tint="@color/md_red_500" />
+                    app:tint="@color/secondaryText" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

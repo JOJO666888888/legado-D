@@ -97,6 +97,138 @@
                 android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/tv_section_cheap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/breakdown_ai_section_cheap"
+                android:textColor="@color/secondaryText"
+                android:textSize="12sp" />
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_cheap_base_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_cheap_base_url"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_cheap_api_key"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_cheap_api_key"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_cheap_model"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_cheap_model"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tv_section_embedding"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/breakdown_ai_section_embedding"
+                android:textColor="@color/secondaryText"
+                android:textSize="12sp" />
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_embedding_base_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_embedding_base_url"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_embedding_api_key"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_embedding_api_key"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_embedding_model"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_embedding_model"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tv_section_dialect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/breakdown_ai_section_dialect"
+                android:textColor="@color/secondaryText"
+                android:textSize="12sp" />
+
+            <io.legado.app.ui.widget.text.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp">
+
+                <io.legado.app.lib.theme.view.ThemeEditText
+                    android:id="@+id/edit_dialect"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/breakdown_ai_dialect"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </io.legado.app.ui.widget.text.TextInputLayout>
+
+            <TextView
                 android:id="@+id/tv_privacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
