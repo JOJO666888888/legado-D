@@ -1581,6 +1581,9 @@
     <string name="ai_agent_context_pick_title">Inject Book Chapters Context</string>
     <string name="ai_agent_context_budget_tip">Context injection budget: approx %1$d CJK chars (window×90%% − max output). Exceeding will be truncated by chapter boundary.</string>
     <string name="ai_agent_skill_manage_title">Skills &amp; Agent Prompts</string>
+    <string name="ai_agent_settings">Settings</string>
+    <string name="ai_agent_settings_ai_config">AI settings</string>
+    <string name="ai_agent_settings_skill_manage">Skills &amp; Agent Prompts</string>
     <string name="ai_skill_cat_all">All</string>
     <string name="ai_skill_cat_breakdown">Breakdown</string>
     <string name="ai_skill_cat_persona">Persona</string>

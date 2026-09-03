@@ -1423,6 +1423,16 @@
     <string name="breakdown_ai_test_ok">连接成功:%1$s</string>
     <string name="breakdown_ai_test_fail">连接失败:%1$s</string>
     <string name="breakdown_ai_privacy_hint">拆解内容将发送至你配置的服务商。</string>
+    <string name="breakdown_ai_section_cheap">廉价模型(记忆 / 滚动摘要)— 留空则回退到主配置</string>
+    <string name="breakdown_ai_section_embedding">向量模型 Embedding(语义索引)— 留空则回退到主配置</string>
+    <string name="breakdown_ai_section_dialect">接口方言</string>
+    <string name="breakdown_ai_cheap_base_url">廉价模型服务地址</string>
+    <string name="breakdown_ai_cheap_api_key">廉价模型 API Key</string>
+    <string name="breakdown_ai_cheap_model">廉价模型名</string>
+    <string name="breakdown_ai_embedding_base_url">向量模型服务地址</string>
+    <string name="breakdown_ai_embedding_api_key">向量模型 API Key</string>
+    <string name="breakdown_ai_embedding_model">向量模型名</string>
+    <string name="breakdown_ai_dialect">openai 或 claude(默认 openai)</string>
     <string name="breakdown_ai_key_missing">尚未配置 AI 服务,去设置?</string>
     <string name="breakdown_ai_rerun_confirm">本章已确认,重新拆解将覆盖已确认数据,继续?</string>
     <string name="breakdown_ai_done">AI 拆解完成,草稿已保存</string>
@@ -1464,6 +1474,9 @@
     <string name="ai_agent_context_pick_title">选择书籍章节注入上下文</string>
     <string name="ai_agent_context_budget_tip">上下文注入预算约 %1$d CJK 字符(≈窗口×90%%−最大输出);超出时按章节边界截断并提示。</string>
     <string name="ai_agent_skill_manage_title">Skill / Agent 提示词管理</string>
+    <string name="ai_agent_settings">设置</string>
+    <string name="ai_agent_settings_ai_config">AI 设置</string>
+    <string name="ai_agent_settings_skill_manage">Skill / Agent 管理</string>
     <string name="ai_skill_cat_all">全部</string>
     <string name="ai_skill_cat_breakdown">拆书</string>
     <string name="ai_skill_cat_persona">人设</string>

@@ -6,28 +6,17 @@
     android:layout_height="wrap_content"
     android:paddingVertical="6dp">
 
-    <ImageView
-        android:id="@+id/iv_role"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:scaleType="fitCenter"
-        android:contentDescription="@null"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/bubble_card"
-        tools:src="@drawable/ic_avatar_ai" />
-
     <androidx.cardview.widget.CardView
         android:id="@+id/bubble_card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginEnd="24dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
         app:layout_constrainedWidth="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/iv_role">
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"

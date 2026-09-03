@@ -32,6 +32,7 @@ import io.legado.app.lib.theme.backgroundColor
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.lib.theme.secondaryTextColor
+import io.legado.app.ui.book.breakdown.AiConfigActivity
 import io.legado.app.ui.main.MainFragmentInterface
 import io.legado.app.utils.ColorUtils
 import io.legado.app.utils.dpToPx
@@ -105,6 +106,8 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
         binding.navRvConvs.layoutManager = LinearLayoutManager(requireContext())
         binding.navRvConvs.adapter = convAdapter
         binding.navFabNew.setOnClickListener { createNewConv() }
+        // 抽屉「设置」:收纳 AI 设置 + Skill/Agent 管理
+        binding.navSettings.setOnClickListener { showSettingsDialog() }
         // 气泡列表
         binding.rvMsgs.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
@@ -139,6 +142,29 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
         }
     }
 
+    /* ------------------------------ 设置入口 ------------------------------ */
+
+    /**
+     * 抽屉「设置」按钮:弹出列表收纳 AI 设置与 Skill/Agent 管理。
+     * 两个入口均跳转到真实可操作的 Activity,非占位按钮。
+     */
+    private fun showSettingsDialog() {
+        val ctx = requireContext()
+        val labels = arrayOf(
+            getString(R.string.ai_agent_settings_ai_config),
+            getString(R.string.ai_agent_settings_skill_manage)
+        )
+        androidx.appcompat.app.AlertDialog.Builder(ctx)
+            .setTitle(R.string.ai_agent_settings)
+            .setItems(labels) { _, which ->
+                when (which) {
+                    0 -> startActivity<AiConfigActivity>()
+                    1 -> startActivity<AiSkillManageActivity>()
+                }
+            }
+            .show()
+    }
+
     /* ------------------------------ 视觉样式(主题派生) ------------------------------ */
 
     /**
@@ -164,15 +190,20 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
         )
         binding.btnStop.imageTintList = ColorStateList.valueOf(ctx.primaryTextColor)
 
-        // 注入上下文轻量 chip
-        binding.btnInject.setTextColor(ctx.secondaryTextColor)
+        // 注入上下文轻量 chip(文字固定黑色,确保浅色主题下可读)
+        binding.btnInject.setTextColor(Color.BLACK)
         (binding.btnInject.background.mutate() as GradientDrawable).setColor(subtle)
         setStartIcon(binding.btnInject, R.drawable.ic_chapter_list, ctx.secondaryTextColor, 14)
 
-        // 抽屉「新建对话」主按钮
-        binding.navFabNew.setTextColor(Color.WHITE)
+        // 抽屉「新建对话」主按钮(文字固定黑色,确保浅色主题下可读)
+        binding.navFabNew.setTextColor(Color.BLACK)
         (binding.navFabNew.background.mutate() as GradientDrawable).setColor(ctx.primaryColor)
-        setStartIcon(binding.navFabNew, R.drawable.ic_add, Color.WHITE, 18)
+        setStartIcon(binding.navFabNew, R.drawable.ic_add, ctx.primaryTextColor, 18)
+
+        // 抽屉「设置」按钮(收纳 AI 设置 + Skill/Agent 管理入口)
+        binding.navSettings.setTextColor(Color.BLACK)
+        (binding.navSettings.background.mutate() as GradientDrawable).setColor(subtle)
+        setStartIcon(binding.navSettings, R.drawable.ic_settings, ctx.primaryTextColor, 18)
 
         // 空状态快捷入口
         binding.btnEmptyNew.setTextColor(Color.WHITE)

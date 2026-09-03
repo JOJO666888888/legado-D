@@ -68,18 +68,11 @@ class AiAgentMsgAdapter(
             val isError = m.kind == AiAgentMsg.KIND_ERROR
             val isThinking = m.role == AiAgentMsg.ROLE_ASSISTANT && m.thinking.isNotBlank()
 
-            /* 角色:仅 AI 正文消息显示头像 */
-            b.ivRole.visibility =
-                if (!isUser && !isTool && !isError) View.VISIBLE else View.GONE
-            if (b.ivRole.visibility == View.VISIBLE) {
-                b.ivRole.setImageResource(R.drawable.ic_avatar_ai)
-            }
-
-            /* 卡片底色与文字色 */
+            /* 卡片底色与文字色(正文统一黑色,与浅色卡片背景形成明显对比) */
             when {
                 isUser -> {
                     b.bubbleCard.setCardBackgroundColor(userBubbleColor)
-                    b.tvContent.setTextColor(primaryText)
+                    b.tvContent.setTextColor(textBlack)
                 }
                 isError -> {
                     b.bubbleCard.setCardBackgroundColor(
@@ -89,7 +82,7 @@ class AiAgentMsgAdapter(
                 }
                 else -> {
                     b.bubbleCard.setCardBackgroundColor(surfaceColor)
-                    b.tvContent.setTextColor(primaryText)
+                    b.tvContent.setTextColor(textBlack)
                 }
             }
 
@@ -150,11 +143,11 @@ class AiAgentMsgAdapter(
                 return
             }
             b.tvThinkingToggle.visibility = View.VISIBLE
-            b.tvThinkingToggle.setTextColor(secondaryText)
+            b.tvThinkingToggle.setTextColor(textBlack)
             b.tvThinkingToggle.setText(
                 context.getString(R.string.ai_agent_think_toggle, m.thinking.length)
             )
-            b.tvThinkingBody.setTextColor(secondaryText)
+            b.tvThinkingBody.setTextColor(textBlack)
             (b.tvThinkingBody.background.mutate() as GradientDrawable).setColor(
                 ColorUtils.blendColors(bgColor, context.primaryTextColor, 0.05f)
             )

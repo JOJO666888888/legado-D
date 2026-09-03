@@ -1,5 +1,6 @@
 package io.legado.app.ui.book.breakdown.ai
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
+import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.AiAgentSkill
@@ -44,6 +46,10 @@ class AiSkillEditorDialog : BaseDialogFragment(R.layout.dialog_ai_skill_editor, 
             attr.gravity = Gravity.BOTTOM
             attributes = attr
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            // 修复背景透明:BaseDialogFragment 在 adaptationSoftKeyboard=true 时会把窗口背景置为透明,
+            // 而本布局根视图无背景,导致弹窗与下层"Skill/Agent 管理"画面重叠难读。
+            // 此处用主题不透明背景色覆盖,浅色/深色主题下均与下层内容完全隔离。
+            setBackgroundDrawable(ColorDrawable(ThemeStore.backgroundColor()))
         }
     }
 
