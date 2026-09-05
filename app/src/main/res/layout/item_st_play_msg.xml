@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="4dp">
+
+    <LinearLayout
+        android:id="@+id/layout_bubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:background="@drawable/bg_st_bubble"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        tools:layout_gravity="start">
+
+        <io.legado.app.ui.widget.text.SecondaryTextView
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/secondaryText"
+            android:textSize="11sp"
+            tools:text="Seraphina" />
+
+        <io.legado.app.ui.widget.text.PrimaryTextView
+            android:id="@+id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:autoLink="web"
+            android:textIsSelectable="true"
+            android:textSize="15sp"
+            tools:maxWidth="260dp"
+            tools:text="*她微微一笑* 欢迎来到图书馆。" />
+    </LinearLayout>
+
+</FrameLayout>

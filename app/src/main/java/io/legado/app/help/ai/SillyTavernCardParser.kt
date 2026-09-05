@@ -2,6 +2,7 @@ package io.legado.app.help.ai
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import io.legado.app.help.config.AppConfig
 import io.legado.app.utils.GSON
 import java.util.zip.Inflater
 
@@ -27,7 +28,11 @@ object SillyTavernCardParser {
         val name: String,
         val systemPrompt: String,
         /** 世界书启用条目列表 JSON(keys/content/constant) */
-        val configJson: String
+        val configJson: String,
+        /** 角色描述(宏替换后,用于书籍简介) */
+        val description: String = "",
+        /** 卡片作者(用于书籍作者) */
+        val creator: String = ""
     )
 
     fun parse(data: ByteArray): ParsedCard? {
@@ -60,10 +65,13 @@ object SillyTavernCardParser {
                 while (ki < end && data[ki] != 0.toByte()) ki++
                 val keyword = String(data, start, ki - start, Charsets.UTF_8)
                 if (keyword == "chara" || keyword == "ccv3") {
-                    val textStart = ki.coerceAtMost(end)
+                    // keyword 以 \0 终止,三种文本块的值都从该 \0 之后的字节开始
+                    val textStart = (ki + 1).coerceAtMost(end)
                     return when (type) {
+                        // zTXt: \0 后是 1 字节 compression method(规范值 0),其后才是 zlib 压缩流
                         "zTXt" -> inflate(data.copyOfRange(textStart + 1, end))
                         "iTXt" -> parseITxt(data, textStart, end)
+                        // tEXt: \0 后即明文 value(base64)
                         else -> data.copyOfRange(textStart, end)
                     }
                 }
@@ -75,10 +83,9 @@ object SillyTavernCardParser {
 
     private fun parseITxt(data: ByteArray, textStart: Int, end: Int): ByteArray? {
         // iTXt layout: keyword\0 compressionFlag(1) compressionMethod(1) languageTag\0 translatedKeyword\0 text
-        var p = textStart
-        if (p >= end) return null
-        val compressionFlag = data[p].toInt() and 0xFF
-        p++
+        if (textStart >= end) return null
+        val compressionFlag = data[textStart].toInt() and 0xFF
+        var p = textStart + 2 // 跳过 flag 与 method(规范 method 恒为 0)
         if (p >= end) return null
         // language tag
         while (p < end && data[p] != 0.toByte()) p++
@@ -87,7 +94,7 @@ object SillyTavernCardParser {
         p++
         if (p >= end) return null
         val raw = data.copyOfRange(p, end)
-        return if (compressionFlag == 1) inflate(raw, true) else raw
+        return if (compressionFlag == 1) inflate(raw) else raw
     }
 
     private fun inflate(data: ByteArray, skipMethodByte0: Boolean = false): ByteArray? {
@@ -152,7 +159,13 @@ object SillyTavernCardParser {
         // 宏替换
         val prompt = macroReplace(sb.toString().trim(), name)
         val worldConfig = buildWorldConfig(data)
-        return ParsedCard(name = name, systemPrompt = prompt, configJson = worldConfig)
+        return ParsedCard(
+            name = name,
+            systemPrompt = prompt,
+            configJson = worldConfig,
+            description = macroReplace(description, name),
+            creator = data.jstr("creator").orEmpty()
+        )
     }
 
     /** 世界书:收集 enabled 条目(默认启用),constant 条目标记「常驻」 */
@@ -181,12 +194,16 @@ object SillyTavernCardParser {
         return GSON.toJson(out)
     }
 
-    private fun macroReplace(text: String, charName: String): String =
-        text.replace("{{char}}", charName)
+    private fun macroReplace(text: String, charName: String): String {
+        // {{user}} 系列宏替换为 AI 设置中的自定义用户名(导入时展开,空值回落「用户」)
+        val userName = AppConfig.aiUserName
+        return text.replace("{{char}}", charName)
             .replace("{{Char}}", charName)
             .replace("{{CHAR}}", charName)
-            .replace("{{user}}", "用户")
-            .replace("{{User}}", "用户")
+            .replace("{{user}}", userName)
+            .replace("{{User}}", userName)
+            .replace("{{USER}}", userName)
+    }
 
     /* ------------------------------ 小工具 ------------------------------ */
 

@@ -71,6 +71,11 @@ object BookType {
     const val localTag = "loc_book"
 
     /**
+     * SillyTavern 对话存档书籍标志(内容来自导入的 ST .jsonl 聊天存档,见 StChatFile)
+     */
+    const val stChatTag = "st_chat"
+
+    /**
      * 书源已webDav::开头的书籍,可以从webDav更新或重新下载
      */
     const val webDavTag = "webDav::"

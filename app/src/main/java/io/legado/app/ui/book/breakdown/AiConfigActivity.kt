@@ -42,6 +42,8 @@ class AiConfigActivity : VMBaseActivity<ActivityAiConfigBinding, AiConfigViewMod
         binding.editApiKey.setText(AppConfig.aiApiKey)
         binding.editModel.setText(AppConfig.aiModel)
         binding.editMaxSend.setText(AppConfig.aiMaxSendChars.toString())
+        // 角色卡 {{user}} 宏替换的用户名
+        binding.editUserName.setText(AppConfig.aiUserName)
         // 角色化模型配置(未配置留空=回退主配置)
         binding.editCheapBaseUrl.setText(AppConfig.aiCheapBaseUrl)
         binding.editCheapApiKey.setText(AppConfig.aiCheapApiKey)
@@ -74,6 +76,8 @@ class AiConfigActivity : VMBaseActivity<ActivityAiConfigBinding, AiConfigViewMod
         AppConfig.aiEmbeddingModel = binding.editEmbeddingModel.text?.toString()?.trim().orEmpty()
         val dialect = binding.editDialect.text?.toString()?.trim().orEmpty()
         AppConfig.aiDialect = if (dialect == "claude") "claude" else "openai"
+        // 角色卡 {{user}} 宏替换的用户名
+        AppConfig.aiUserName = binding.editUserName.text?.toString()?.trim().orEmpty()
     }
 
     private fun testConnection() {

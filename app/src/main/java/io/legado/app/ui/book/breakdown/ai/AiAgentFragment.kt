@@ -23,15 +23,18 @@ import io.legado.app.data.entities.AiAgentConv
 import io.legado.app.data.entities.AiAgentMsg
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
+import io.legado.app.data.entities.AiAgentSkill
 import io.legado.app.databinding.ActivityAiAgentBinding
 import io.legado.app.help.ai.AiAgentHelper
 import io.legado.app.help.ai.AiAgentRunner
+import io.legado.app.help.ai.SillyTavernCardParser
 import io.legado.app.help.ai.TokenBudget
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.backgroundColor
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.lib.theme.secondaryTextColor
+import io.legado.app.model.localBook.StChatFile
 import io.legado.app.ui.book.breakdown.AiConfigActivity
 import io.legado.app.ui.main.MainFragmentInterface
 import io.legado.app.utils.ColorUtils
@@ -90,6 +93,62 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
             injectContextFromSelection(bookName, author, rangeStart..rangeEnd)
         }
 
+    // SillyTavern 角色卡导入(SAF 选择 .png/.json,解析为 Agent Persona skill)
+    private val importCardLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri == null) return@registerForActivityResult
+            lifecycleScope.launch(Dispatchers.IO) {
+                val bytes = kotlin.runCatching {
+                    requireContext().contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                }.getOrNull() ?: run {
+                    withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_fail) }
+                    return@launch
+                }
+                val card = SillyTavernCardParser.parse(bytes)
+                if (card == null) {
+                    withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_fail) }
+                    return@launch
+                }
+                val now = System.currentTimeMillis()
+                val exists = appDb.aiAgentSkillDao
+                    .getByNameAndCategory(card.name, AiAgentSkill.AGENT_PERSONA)
+                val skill = AiAgentSkill(
+                    name = if (exists == null) card.name
+                    else "${card.name} ${getString(R.string.ai_skill_copy_suffix)}",
+                    category = AiAgentSkill.AGENT_PERSONA,
+                    systemPrompt = card.systemPrompt,
+                    toolDescriptions = "",
+                    readOnly = false,
+                    enabled = true,
+                    builtinId = "",
+                    config = card.configJson,
+                    migratedFromTemplateId = -1L,
+                    createTime = now,
+                    updateTime = now
+                )
+                appDb.aiAgentSkillDao.insert(skill)
+                postEvent(EventBus.AI_AGENT_SKILL_CHANGED, skill.id.toString())
+                withContext(Dispatchers.Main) { toastOnUi(R.string.ai_skill_import_persona_ok) }
+            }
+        }
+
+    // SillyTavern 对话存档导入(多选 .jsonl 存档与 .png/.json 角色卡,按角色卡生成书架书籍:
+    // 一张角色卡 = 一本书,一场对话 = 一卷,一轮对话 = 一章)
+    private val importStChatLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+            if (uris.isNullOrEmpty()) return@registerForActivityResult
+            lifecycleScope.launch(Dispatchers.IO) {
+                val result = StChatFile.importStData(requireContext(), uris)
+                withContext(Dispatchers.Main) {
+                    if (result.books.isNotEmpty()) {
+                        toastOnUi(getString(R.string.ai_st_chat_import_ok, result.books.size))
+                    } else {
+                        toastOnUi(R.string.ai_st_chat_import_fail)
+                    }
+                }
+            }
+        }
+
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
         binding.titleBar.setBackgroundColor(primaryColor)
         binding.titleBar.setTitle(R.string.ai_agent_title)
@@ -145,14 +204,19 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
     /* ------------------------------ 设置入口 ------------------------------ */
 
     /**
-     * 抽屉「设置」按钮:弹出列表收纳 AI 设置与 Skill/Agent 管理。
-     * 两个入口均跳转到真实可操作的 Activity,非占位按钮。
+     * 抽屉「设置」按钮:弹出列表收纳 AI 设置 / Skill/Agent 管理 / 角色卡导入 /
+     * ST 对话存档导入 / ST 网关同步 / ST 剧场(游玩)。
+     * 各入口均真实可操作,非占位按钮。
      */
     private fun showSettingsDialog() {
         val ctx = requireContext()
         val labels = arrayOf(
             getString(R.string.ai_agent_settings_ai_config),
-            getString(R.string.ai_agent_settings_skill_manage)
+            getString(R.string.ai_agent_settings_skill_manage),
+            getString(R.string.ai_agent_settings_import_card),
+            getString(R.string.ai_agent_settings_import_st_chat),
+            getString(R.string.ai_agent_settings_st_gateway),
+            getString(R.string.ai_agent_settings_st_play)
         )
         androidx.appcompat.app.AlertDialog.Builder(ctx)
             .setTitle(R.string.ai_agent_settings)
@@ -160,6 +224,10 @@ class AiAgentFragment() : VMBaseFragment<AiAgentViewModel>(R.layout.activity_ai_
                 when (which) {
                     0 -> startActivity<AiConfigActivity>()
                     1 -> startActivity<AiSkillManageActivity>()
+                    2 -> importCardLauncher.launch("*/*")
+                    3 -> importStChatLauncher.launch(arrayOf("*/*"))
+                    4 -> startActivity<StGatewayActivity>()
+                    5 -> startActivity<StPlayActivity>()
                 }
             }
             .show()

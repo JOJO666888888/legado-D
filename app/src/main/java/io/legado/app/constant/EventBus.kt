@@ -47,5 +47,7 @@ object EventBus {
     const val AI_AGENT_CONV_CHANGED = "aiAgentConvChanged"
     /** Skill 变动(增删改)时通知 Skill 列表与拆书档案页绑定选择器刷新 */
     const val AI_AGENT_SKILL_CHANGED = "aiAgentSkillChanged"
+    /** SillyTavern 对话存档导入/更新为书籍(payload: 书籍数量),书架/书籍页刷新用 */
+    const val AI_AGENT_ST_BOOK_CHANGED = "aiAgentStBookChanged"
     const val UP_VIDEO_INFO = "upVideoInfo"
 }

@@ -321,6 +321,29 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
             appCtx.putPrefString(PreferKey.aiModel, value)
         }
 
+    /** SillyTavern 角色卡 {{user}} 宏替换的用户名(导入时展开,空值回落「用户」) */
+    var aiUserName: String
+        get() = appCtx.getPrefString(PreferKey.aiUserName, "用户").orEmpty().ifBlank { "用户" }
+        set(value) {
+            appCtx.putPrefString(PreferKey.aiUserName, value)
+        }
+
+    // -------------------- ST 网关(st-gateway-lite)配置(仅存私有 Preferences,不入备份) --------------------
+
+    /** ST 网关地址,如 http://192.168.1.10:8787;空=未配置 */
+    var stGatewayUrl: String
+        get() = appCtx.getPrefString(PreferKey.stGatewayUrl).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.stGatewayUrl, value)
+        }
+
+    /** ST 网关鉴权 Token */
+    var stGatewayToken: String
+        get() = appCtx.getPrefString(PreferKey.stGatewayToken).orEmpty()
+        set(value) {
+            appCtx.putPrefString(PreferKey.stGatewayToken, value)
+        }
+
     // -------------------- 角色化模型配置(未配置时回退主配置,零配置兼容) --------------------
 
     /** 便宜模型(记忆/前情提要):未配置回退主配置 */

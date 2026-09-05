@@ -64,6 +64,12 @@ object PreferKey {
     const val aiMaxOutputTokens = "aiMaxOutputTokens"
     /** 用户可覆盖:上下文窗口 Token(默认按模型能力表自动填, 留空=模型推断);API 配置 UI 暴露;仅存 SharedPreferences,不入备份 */
     const val aiContextWindowTokens = "aiContextWindowTokens"
+    /** SillyTavern 角色卡 {{user}} 宏替换的用户名(导入时展开);仅存 SharedPreferences,不入备份 */
+    const val aiUserName = "aiUserName"
+    /** ST 网关(st-gateway-lite)地址;仅存 SharedPreferences,不入备份 */
+    const val stGatewayUrl = "stGatewayUrl"
+    /** ST 网关鉴权 Token;仅存 SharedPreferences,不入备份 */
+    const val stGatewayToken = "stGatewayToken"
     const val bookshelfLayout = "bookshelfLayout"
     const val bookshelfSort = "bookshelfSort"
     const val bookExportFileName = "bookExportFileName"

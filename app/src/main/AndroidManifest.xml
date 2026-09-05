@@ -346,6 +346,15 @@
             android:name=".ui.book.breakdown.ai.AiContextPickerActivity"
             android:launchMode="singleTop"
             android:label="@string/ai_agent_context_pick_title" />
+        <activity
+            android:name=".ui.book.breakdown.ai.StGatewayActivity"
+            android:launchMode="singleTop"
+            android:label="@string/st_gateway_title" />
+        <activity
+            android:name=".ui.book.breakdown.ai.StPlayActivity"
+            android:launchMode="singleTop"
+            android:label="@string/st_play_title"
+            android:windowSoftInputMode="adjustResize" />
         <!-- 缓存界面 -->
         <activity
             android:name=".ui.book.cache.CacheActivity"

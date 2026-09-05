@@ -70,6 +70,10 @@ val Book.isMobi: Boolean
             originName.endsWith(".azw3", true) ||
             originName.endsWith(".azw", true))
 
+/** SillyTavern 对话存档书籍(角色卡=书,一场对话=卷,一轮对话=章) */
+val Book.isStChat: Boolean
+    get() = isLocal && origin == BookType.stChatTag
+
 val Book.isOnLineTxt: Boolean
     get() = !isLocal && isType(BookType.text)
 

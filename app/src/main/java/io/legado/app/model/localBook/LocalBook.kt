@@ -29,6 +29,7 @@ import io.legado.app.help.book.isArchive
 import io.legado.app.help.book.isEpub
 import io.legado.app.help.book.isMobi
 import io.legado.app.help.book.isPdf
+import io.legado.app.help.book.isStChat
 import io.legado.app.help.book.isUmd
 import io.legado.app.help.book.removeLocalUriCache
 import io.legado.app.help.book.simulatedTotalChapterNum
@@ -119,6 +120,10 @@ object LocalBook {
     @Throws(TocEmptyException::class)
     fun getChapterList(book: Book): ArrayList<BookChapter> {
         val chapters = when {
+            book.isStChat -> {
+                StChatFile.getChapterList(book)
+            }
+
             book.isEpub -> {
                 EpubFile.getChapterList(book)
             }
@@ -172,6 +177,10 @@ object LocalBook {
     fun getContent(book: Book, chapter: BookChapter): String? {
         var content = try {
             when {
+                book.isStChat -> {
+                    StChatFile.getContent(book, chapter)
+                }
+
                 book.isEpub -> {
                     EpubFile.getContent(book, chapter)
                 }
@@ -389,6 +398,13 @@ object LocalBook {
             BookHelp.clearCache(book)
             if (!book.coverUrl.isNullOrEmpty()) {
                 FileUtils.delete(book.coverUrl!!)
+            }
+            if (book.isStChat) {
+                // ST 对话书籍: 源文件为应用内拷贝,跟随「删除本地文件」一起清理
+                if (deleteOriginal) {
+                    StChatFile.deleteSource(book)
+                }
+                return@runCatching
             }
             if (deleteOriginal) {
                 if (book.bookUrl.isContentScheme()) {
